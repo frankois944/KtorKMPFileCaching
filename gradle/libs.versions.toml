@@ -1,0 +1,28 @@
+[versions]
+agp = "8.3.2"
+kotlin = "2.0.0"
+kotlinSerialization = "1.7.0" # https://github.com/Kotlin/kotlinx.serialization/releases
+kotlinCoroutines = "1.9.0-RC" # https://github.com/Kotlin/kotlinx.coroutines/releases
+ktor = "2.3.11"
+okio = "3.9.0" # https://square.github.io/okio/changelog/
+slf4jAndroid="1.7.36"
+slf4jJvm="2.0.13"
+
+[libraries]
+ktor-client-core = { module = "io.ktor:ktor-client-core", version.ref = "ktor" }
+ktor-client-logging = { module = "io.ktor:ktor-client-logging", version.ref = "ktor" }
+ktor-client-mock = { module = "io.ktor:ktor-client-mock", version.ref = "ktor" }
+kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
+kotlin-serialization = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "kotlinSerialization" }
+kotlin-coroutines = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-core", version.ref = "kotlinCoroutines" }
+kotlin-coroutines-test = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-test", version.ref = "kotlinCoroutines" }
+okio = { module = "com.squareup.okio:okio", version.ref = "okio" }
+okio-fakefilesystem = { module = "com.squareup.okio:okio-fakefilesystem", version.ref = "okio" }
+okio-nodefilesystem = { module = "com.squareup.okio:okio-nodefilesystem", version.ref = "okio" }
+slf4j-android = { module = "org.slf4j:slf4j-android", version.ref = "slf4jAndroid" }
+slf4j-jvm = { module = "org.slf4j:slf4j-api", version.ref = "slf4jJvm" }
+
+[plugins]
+androidLibrary = { id = "com.android.library", version.ref = "agp" }
+kotlinMultiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
+kotlinSerialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlinSerialization" }
