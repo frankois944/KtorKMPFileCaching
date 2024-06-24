@@ -96,6 +96,7 @@ class CommonGreetingTest {
             assertEquals(firstResponse.bodyAsText(), cachedResponse.bodyAsText())
             assertEquals(firstResponse.headers, cachedResponse.headers)
             assertEquals(firstResponse.status, cachedResponse.status)
+            assertEquals(firstResponse.call.attributes.allKeys, cachedResponse.call.attributes.allKeys)
             client.httpClient.close()
         }
     }
