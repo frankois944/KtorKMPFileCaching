@@ -5,7 +5,11 @@ plugins {
     alias(libs.plugins.kotlinMultiplatform)
     alias(libs.plugins.androidLibrary)
     alias(libs.plugins.kotlinSerialization)
+    id("maven-publish")
 }
+
+group = "fr.frankois944.ktorfilecaching"
+version = "0.1"
 
 kotlin {
     // every class, method, property must declare there visibility
@@ -17,6 +21,7 @@ kotlin {
         compilerOptions {
             jvmTarget.set(JvmTarget.JVM_1_8)
         }
+        publishLibraryVariants("release", "debug")
     }
     jvm()
     js {
@@ -76,5 +81,13 @@ android {
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_1_8
         targetCompatibility = JavaVersion.VERSION_1_8
+    }
+}
+
+publishing {
+    repositories {
+        maven {
+            // ...
+        }
     }
 }
