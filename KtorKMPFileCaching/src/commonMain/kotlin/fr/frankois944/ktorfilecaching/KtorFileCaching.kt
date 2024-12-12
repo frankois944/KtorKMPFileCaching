@@ -141,7 +141,8 @@ public class KtorFileCaching(
         data: CachedResponseData,
     ): Unit = lock.withLock {
         try {
-            val urlCacheDir = cacheDir.resolve(urlToPath(url))
+            val urlToPath = urlToPath(url)
+            val urlCacheDir = cacheDir.resolve(urlToPath)
             if (!fileSystem.exists(urlCacheDir)) {
                 fileSystem.createDirectory(urlCacheDir)
             }
@@ -154,8 +155,8 @@ public class KtorFileCaching(
             }
 
             metadataCache.block {
-                if (!it.containsKey(urlToPath(url))) {
-                    it[urlToPath(url)] = mutableSetOf(varyKeyHash)
+                if (!it.containsKey(urlToPath)) {
+                    it[urlToPath] = mutableSetOf(varyKeyHash)
                 }
             }
         } catch (ex: Exception) {
