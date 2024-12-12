@@ -5,11 +5,8 @@ plugins {
     alias(libs.plugins.kotlinMultiplatform)
     alias(libs.plugins.androidLibrary)
     alias(libs.plugins.kotlinSerialization)
-    id("maven-publish")
+    id("com.vanniktech.maven.publish") version "0.30.0"
 }
-
-group = "fr.frankois944.ktorfilecaching"
-version = "0.1"
 
 kotlin {
     // every class, method, property must declare there visibility
@@ -84,10 +81,46 @@ android {
     }
 }
 
-publishing {
-    repositories {
-        maven {
-            // ...
+mavenPublishing {
+    // Define coordinates for the published artifact
+    coordinates(
+        groupId = "io.github.frankois944",
+        artifactId = "ktorfilecaching",
+        version = "0.1"
+    )
+
+    // Configure POM metadata for the published artifact
+    pom {
+        name.set("KMP Library for Ktor client file caching")
+        description.set("This library can be used by a lot of targets for enabling the file caching of Ktor caching (https://ktor.io/docs/client-caching.html) ")
+        inceptionYear.set("2024")
+        url.set("https://github.com/frankois944/KtorKMPFileCaching")
+
+        licenses {
+            license {
+                name.set("Apache-2.0")
+                url.set("https://opensource.org/licenses/Apache-2.0")
+            }
+        }
+
+        // Specify developer information
+        developers {
+            developer {
+                id.set("frankois944")
+                name.set("Francois Dabonot")
+                email.set("dabonot.francois@gmail.com")
+            }
+        }
+
+        // Specify SCM information
+        scm {
+            url.set("https://github.com/frankois944/KtorKMPFileCaching")
         }
     }
+
+    // Configure publishing to Maven Central
+    publishToMavenCentral(com.vanniktech.maven.publish.SonatypeHost.CENTRAL_PORTAL)
+
+    // Enable GPG signing for all publications
+    signAllPublications()
 }
