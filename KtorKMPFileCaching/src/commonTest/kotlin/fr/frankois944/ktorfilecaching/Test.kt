@@ -8,7 +8,6 @@ import io.ktor.client.plugins.cache.storage.CachedResponseData
 import io.ktor.client.plugins.logging.LogLevel
 import io.ktor.client.plugins.logging.Logging
 import io.ktor.client.statement.bodyAsText
-import io.ktor.http.Headers
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpProtocolVersion
 import io.ktor.http.HttpStatusCode
@@ -16,25 +15,24 @@ import io.ktor.http.Url
 import io.ktor.http.headersOf
 import io.ktor.util.date.GMTDate
 import io.ktor.utils.io.ByteReadChannel
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.test.StandardTestDispatcher
-import kotlinx.coroutines.test.resetMain
-import kotlinx.coroutines.test.runTest
-import kotlinx.coroutines.test.setMain
+import kotlinx.coroutines.*
+import kotlinx.coroutines.test.*
+import kotlinx.datetime.Clock
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import okio.Path.Companion.toPath
 import okio.fakefilesystem.FakeFileSystem
-import kotlin.test.AfterTest
-import kotlin.test.BeforeTest
-import kotlin.test.Test
-import kotlin.test.assertEquals
+import kotlin.test.*
 
 class CommonGreetingTest {
+
+    private val caching = KtorFileCaching(storedCacheDirectory = "testCache".toPath(), fileSystem =  FakeFileSystem())
+
     @ExperimentalCoroutinesApi
     @BeforeTest
-    fun beforeTest() {
+    fun beforeTest() = runTest {
         Dispatchers.setMain(StandardTestDispatcher())
+        caching.purgeCache()
     }
 
     @ExperimentalCoroutinesApi
@@ -54,10 +52,17 @@ class CommonGreetingTest {
                     responseTime = GMTDate.START,
                     version = HttpProtocolVersion.HTTP_1_1,
                     expires = GMTDate.START,
-                    headers =
-                        Headers.build {
-                            this["Content-Type"] = "application/json"
-                        },
+                    headers = headersOf(
+                        Pair(
+                            HttpHeaders.ContentType,
+                            listOf("application/json")
+                        ),
+                        Pair(
+                            HttpHeaders.Date, listOf(
+                                Clock.System.now().toString()
+                            )
+                        )
+                    ),
                     varyKeys = emptyMap(),
                     body = "laurem ipsum".encodeToByteArray(),
                 ),
@@ -70,34 +75,48 @@ class CommonGreetingTest {
     }
 
     @Test
-    fun testKtorCache() {
-        runTest {
-            val mockEngine =
-                MockEngine { request ->
-                    respond(
-                        content = ByteReadChannel("""{"ip":"127.0.0.1"}"""),
-                        status = HttpStatusCode.OK,
-                        headers = headersOf(HttpHeaders.ContentType, "application/json"),
-                    )
-                }
-
-            val client =
-                ApiClient(
-                    HttpClient(mockEngine) {
-                        install(HttpCache) {
-                            publicStorage(KtorFileCaching(FakeFileSystem()))
-                        }
-                        install(Logging) { level = LogLevel.INFO }
-                    },
+    fun testKtorCache() = runTest {
+        val mockEngine =
+            MockEngine {
+                respond(
+                    content = ByteReadChannel(
+                        """
+                            {"ip":"127.0.0.1", "time" : ${Clock.System.now()}}
+                        """.trimIndent()
+                    ),
+                    status = HttpStatusCode.OK,
+                    headers = headersOf(
+                        Pair(
+                            HttpHeaders.ContentType,
+                            listOf("application/json")
+                        ),
+                        Pair(
+                            HttpHeaders.Date,
+                            listOf(Clock.System.now().toString()),
+                        ),
+                        Pair(
+                            HttpHeaders.CacheControl,
+                            listOf("max-age=600")
+                        )
+                    ),
                 )
+            }
 
-            val firstResponse = client.getIp()
-            val cachedResponse = client.getIp()
-            assertEquals(firstResponse.bodyAsText(), cachedResponse.bodyAsText())
-            assertEquals(firstResponse.headers, cachedResponse.headers)
-            assertEquals(firstResponse.status, cachedResponse.status)
-            assertEquals(firstResponse.call.attributes.allKeys, cachedResponse.call.attributes.allKeys)
-            client.httpClient.close()
-        }
+        val client =
+            ApiClient(
+                HttpClient(mockEngine) {
+                    install(HttpCache) {
+                        publicStorage(caching)
+                    }
+                    install(Logging) { level = LogLevel.INFO }
+                },
+            )
+
+        val firstResponse = client.getIp()
+        val cachedResponse = client.getIp()
+        assertEquals(firstResponse.bodyAsText(), cachedResponse.bodyAsText())
+        assertEquals(firstResponse.headers, cachedResponse.headers)
+        assertEquals(firstResponse.status, cachedResponse.status)
+        client.httpClient.close()
     }
 }

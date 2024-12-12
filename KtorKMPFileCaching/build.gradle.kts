@@ -1,4 +1,5 @@
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
+import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
@@ -13,8 +14,6 @@ kotlin {
     explicitApi()
 
     androidTarget {
-        // https://youtrack.jetbrains.com/issue/KT-66448
-        @OptIn(ExperimentalKotlinGradlePluginApi::class)
         compilerOptions {
             jvmTarget.set(JvmTarget.JVM_1_8)
         }
@@ -22,7 +21,11 @@ kotlin {
     }
     jvm()
     js {
-        nodejs()
+        nodejs {
+            testTask {
+            }
+        }
+        binaries.executable()
     }
     iosX64()
     iosArm64()
@@ -51,21 +54,23 @@ kotlin {
         jsMain.dependencies {
             api(libs.okio.nodefilesystem)
         }
-        jsTest.dependencies {
-            api(libs.okio.nodefilesystem)
-        }
         commonTest.dependencies {
             implementation(libs.kotlin.test)
             implementation(libs.okio.fakefilesystem)
             implementation(libs.ktor.client.mock)
             implementation(libs.kotlin.coroutines.test)
             implementation(libs.ktor.client.logging)
+            implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.6.1")
         }
         androidNativeTest.dependencies {
             implementation(libs.slf4j.android)
         }
         jvmTest.dependencies {
             implementation(libs.slf4j.jvm)
+        }
+        jsTest.dependencies {
+            api(libs.okio.nodefilesystem)
+            implementation(npm("@js-joda/timezone", "2.3.0"))
         }
     }
 }

@@ -15,15 +15,25 @@ import okio.Path.Companion.toPath
 
 internal expect fun filesystem(): FileSystem
 
+/**
+ * Ktor file caching
+ *
+ * @property fileSystem
+ * @constructor
+ *
+ * @param storedCacheDirectory the directories where the cache is, by default it's KTorFileCaching
+ * @param rootStoredCachePath the root directory, by default it's SYSTEM_TEMPORARY_DIRECTORY of okio
+ * @param fileSystem the okio filesystem instance
+ */
 public class KtorFileCaching(
-    private val fileSystem: FileSystem = filesystem(),
+    storedCacheDirectory: Path = "KTorFileCaching".toPath(),
+    rootStoredCachePath: Path = FileSystem.SYSTEM_TEMPORARY_DIRECTORY,
+    private val fileSystem: FileSystem = filesystem()
 ) : CacheStorage {
 
     //<editor-fold desc="Path">
 
-    private val baseDir = FileSystem.SYSTEM_TEMPORARY_DIRECTORY
-    private val separator = Path.DIRECTORY_SEPARATOR
-    private val cacheDir = "${baseDir}${separator}KTorFileCaching$separator".toPath()
+    private val cacheDir = "$rootStoredCachePath${Path.DIRECTORY_SEPARATOR}$storedCacheDirectory".toPath()
 
     //</editor-fold>
 
@@ -34,11 +44,11 @@ public class KtorFileCaching(
     private val LOGGER = KtorSimpleLogger("fr.frankois944.ktorfilecaching")
 
     init {
-        if (!fileSystem.exists(baseDir)) {
-            fileSystem.createDirectories(baseDir, true)
+        if (!fileSystem.exists(rootStoredCachePath)) {
+            fileSystem.createDirectories(rootStoredCachePath, true)
         }
         if (!fileSystem.exists(cacheDir)) {
-            fileSystem.createDirectories(cacheDir, true)
+            fileSystem.createDirectory(cacheDir, true)
         }
     }
 
@@ -87,7 +97,9 @@ public class KtorFileCaching(
             val filePath = urlCacheDir.resolve(varyKeyHash)
             if (fileSystem.exists(filePath)) {
                 fileSystem.read(filePath) {
-                    Json.decodeFromString<SerializableCachedResponseData>(buffer.readUtf8())
+                    readUtf8()
+                }.run {
+                    Json.decodeFromString<SerializableCachedResponseData>(this)
                 }.cachedResponseData
             } else {
                 null
@@ -113,7 +125,9 @@ public class KtorFileCaching(
             metadataCache[urlToPath]?.map { fileName ->
                 val filePath = urlCacheDir.resolve(fileName)
                 fileSystem.read(filePath) {
-                    Json.decodeFromString<SerializableCachedResponseData>(buffer.readUtf8())
+                    readUtf8()
+                }.run {
+                    Json.decodeFromString<SerializableCachedResponseData>(this)
                 }.cachedResponseData
             }?.toSet() ?: emptySet()
         } catch (ex: Exception) {
@@ -136,7 +150,7 @@ public class KtorFileCaching(
             val filePath = urlCacheDir.resolve(varyKeyHash)
 
             fileSystem.write(filePath) {
-                buffer.writeUtf8(Json.encodeToString(data))
+                buffer.writeUtf8(Json.encodeToString(SerializableCachedResponseData(data)))
             }
 
             metadataCache.block {
@@ -150,10 +164,10 @@ public class KtorFileCaching(
     }
 
     private fun urlToPath(url: Url): String {
-        return url.toString().hashCode().toString()
+        return url.hashCode().toString()
     }
 
     private fun hashVaryKeys(varyKeys: Map<String, String>): String {
-        return varyKeys.toMap().entries.joinToString { "${it.key}=${it.value}" }.hashCode().toString()
+        return varyKeys.hashCode().toString()
     }
 }
