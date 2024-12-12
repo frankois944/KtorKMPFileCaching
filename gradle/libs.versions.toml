@@ -1,10 +1,10 @@
 [versions]
 agp = "8.3.2"
-kotlin = "2.0.0"
+kotlin = "2.1.0"
 kotlinSerialization = "1.7.0" # https://github.com/Kotlin/kotlinx.serialization/releases
-kotlinCoroutines = "1.9.0-RC" # https://github.com/Kotlin/kotlinx.coroutines/releases
-ktor = "2.3.11"
-okio = "3.9.0" # https://square.github.io/okio/changelog/
+kotlinCoroutines = "1.9.0" # https://github.com/Kotlin/kotlinx.coroutines/releases
+ktor = "3.0.2"
+okio = "3.9.1" # https://square.github.io/okio/changelog/
 slf4jAndroid="1.7.36"
 slf4jJvm="2.0.13"
 
