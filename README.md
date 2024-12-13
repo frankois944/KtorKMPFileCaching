@@ -1,6 +1,6 @@
 # Ktor KMP File Caching
 
-This project is adding a file caching for [Ktor client caching](https://ktor.io/docs/client-caching.html).
+This project add a file caching for [Ktor client caching](https://ktor.io/docs/client-caching.html).
 
 Currently, there is a Memory caching, it's the default [HttpCache](https://ktor.io/docs/client-caching.html#memory_cache) behavior of the plugin and a [file caching only for Java Target](https://ktor.io/docs/client-caching.html#persistent_cache).
 
