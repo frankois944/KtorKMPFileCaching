@@ -31,3 +31,22 @@ The current supported targets are :
 | mingwX64              | ✅          |
 | linuxX64              | ✅          |
 | linuxArm64            | ✅          |
+
+## Example
+
+```kotlin
+private val publicStorageCaching = KtorFileCaching(storedCacheDirectory = "publicCache".toPath())
+val client = ApiClient(
+                HttpClient {
+                    install(HttpCache) {
+                        publicStorage(publicStorageCaching)
+                    }
+                },
+            )
+```
+
+```kotlin
+commonMain.dependencies {
+    implementation("io.github.frankois944:ktorfilecaching4:0.3")
+}
+```
