@@ -119,4 +119,47 @@ class CommonGreetingTest {
         assertEquals(firstResponse.status, cachedResponse.status)
         client.httpClient.close()
     }
+
+    @Test
+    fun testWithoutKtorCache() = runTest {
+        val mockEngine =
+            MockEngine {
+                respond(
+                    content = ByteReadChannel(
+                        """
+                            {"ip":"127.0.0.1", "time" : ${Clock.System.now()}}
+                        """.trimIndent()
+                    ),
+                    status = HttpStatusCode.OK,
+                    headers = headersOf(
+                        Pair(
+                            HttpHeaders.ContentType,
+                            listOf("application/json")
+                        ),
+                        Pair(
+                            HttpHeaders.Date,
+                            listOf(Clock.System.now().toString()),
+                        ),
+                        Pair(
+                            HttpHeaders.CacheControl,
+                            listOf("max-age=600")
+                        )
+                    ),
+                )
+            }
+
+        val client =
+            ApiClient(
+                HttpClient(mockEngine) {
+                    install(Logging) { level = LogLevel.INFO }
+                },
+            )
+
+        val firstResponse = client.getIp()
+        val cachedResponse = client.getIp()
+        assertNotEquals(firstResponse.bodyAsText(), cachedResponse.bodyAsText())
+        assertNotEquals(firstResponse.headers, cachedResponse.headers)
+        assertEquals(firstResponse.status, cachedResponse.status)
+        client.httpClient.close()
+    }
 }

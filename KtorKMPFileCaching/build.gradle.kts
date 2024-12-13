@@ -45,7 +45,6 @@ kotlin {
 
     sourceSets {
         commonMain.dependencies {
-            implementation(libs.stately)
             implementation(libs.kotlin.serialization)
             implementation(libs.kotlin.coroutines)
             implementation(libs.ktor.client.core)
@@ -90,7 +89,7 @@ android {
 mavenPublishing {
     // Define coordinates for the published artifact
     coordinates(
-        groupId = "fr.frankois944",
+        groupId = "io.github.frankois944",
         artifactId = "ktorfilecaching",
         version = "0.2"
     )

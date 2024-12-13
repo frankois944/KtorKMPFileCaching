@@ -1,6 +1,5 @@
 package fr.frankois944.ktorfilecaching
 
-import co.touchlab.stately.collections.ConcurrentMutableMap
 import io.ktor.client.plugins.cache.storage.CacheStorage
 import io.ktor.client.plugins.cache.storage.CachedResponseData
 import io.ktor.http.Url
@@ -38,17 +37,18 @@ public class KtorFileCaching(
     //</editor-fold>
 
     private val lock = Mutex() // Coroutine-friendly lock for thread safety
-    private val metadataCache = ConcurrentMutableMap<String, Set<String>>() // In-memory metadata cache for fast lookup
+    private val metadataCache =
+        mutableMapOf<String, MutableSet<String>>() // In-memory metadata cache for fast lookup
 
     @Suppress("ktlint:standard:property-naming")
     private val LOGGER = KtorSimpleLogger("fr.frankois944.ktorfilecaching")
 
     init {
         if (!fileSystem.exists(rootStoredCachePath)) {
-            fileSystem.createDirectories(rootStoredCachePath, true)
+            fileSystem.createDirectories(rootStoredCachePath)
         }
         if (!fileSystem.exists(cacheDir)) {
-            fileSystem.createDirectory(cacheDir, true)
+            fileSystem.createDirectory(cacheDir)
         }
     }
 
@@ -60,25 +60,17 @@ public class KtorFileCaching(
      */
     public suspend fun purgeCache(forUrl: Url? = null): Unit =
         lock.withLock {
-            try {
-                if (forUrl == null) {
-                    // Purge all
-                    fileSystem.list(cacheDir).forEach { fileSystem.deleteRecursively(it) }
-                    metadataCache.clear()
-                } else {
-                    val urlToPath = urlToPath(forUrl)
-                    val urlCacheDir = cacheDir.resolve(urlToPath)
-                    if (fileSystem.exists(urlCacheDir)) {
-                        fileSystem.deleteRecursively(urlCacheDir)
-                    }
-                    metadataCache.remove(urlToPath)
+            if (forUrl == null) {
+                // Purge all
+                fileSystem.list(cacheDir).forEach { fileSystem.deleteRecursively(it) }
+                metadataCache.clear()
+            } else {
+                val urlToPath = urlToPath(forUrl)
+                val urlCacheDir = cacheDir.resolve(urlToPath)
+                if (fileSystem.exists(urlCacheDir)) {
+                    fileSystem.deleteRecursively(urlCacheDir)
                 }
-            } catch (ex: Exception) {
-                if (forUrl != null) {
-                    LOGGER.error("Can't [purge] cache for url $forUrl", ex)
-                } else {
-                    LOGGER.error("Can't [purge] all cache", ex)
-                }
+                metadataCache.remove(urlToPath)
             }
         }
 
@@ -86,81 +78,63 @@ public class KtorFileCaching(
         url: Url,
         varyKeys: Map<String, String>,
     ): CachedResponseData? = lock.withLock {
-        try {
-            val urlCacheDir = cacheDir.resolve(urlToPath(url))
-            if (!fileSystem.exists(urlCacheDir)) {
-                LOGGER.trace("Can't [find] cache : $url")
-                return null
-            }
+        val urlCacheDir = cacheDir.resolve(urlToPath(url))
+        if (!fileSystem.exists(urlCacheDir)) {
+            LOGGER.trace("Can't [find] cache : $url")
+            return null
+        }
 
-            val varyKeyHash = hashVaryKeys(varyKeys)
-            val filePath = urlCacheDir.resolve(varyKeyHash)
-            if (fileSystem.exists(filePath)) {
-                fileSystem.read(filePath) {
-                    readUtf8()
-                }.run {
-                    Json.decodeFromString<SerializableCachedResponseData>(this)
-                }.cachedResponseData
-            } else {
-                null
-            }
-        } catch (ex: Exception) {
-            LOGGER.error("Can't [find] cache: $url with varyKeys $varyKeys", ex)
+        val varyKeyHash = hashVaryKeys(varyKeys)
+        val filePath = urlCacheDir.resolve(varyKeyHash)
+        if (fileSystem.exists(filePath)) {
+            fileSystem.read(filePath) {
+                readUtf8()
+            }.run {
+                Json.decodeFromString<SerializableCachedResponseData>(this)
+            }.cachedResponseData
+        } else {
             null
         }
     }
 
     override suspend fun findAll(url: Url): Set<CachedResponseData> = lock.withLock {
-        try {
-            val urlToPath = urlToPath(url)
-            val urlCacheDir = cacheDir.resolve(urlToPath)
-            if (!fileSystem.exists(urlCacheDir)) return emptySet()
+        val urlToPath = urlToPath(url)
+        val urlCacheDir = cacheDir.resolve(urlToPath)
+        if (!fileSystem.exists(urlCacheDir)) return emptySet()
 
-            metadataCache.block { cache ->
-                if (!cache.containsKey(urlToPath)) {
-                    metadataCache[urlToPath] = fileSystem.list(urlCacheDir).map { it.name }.toSet()
-                }
-            }
+        metadataCache[urlToPath]?.addAll(fileSystem.list(urlCacheDir).map { it.name })
 
-            metadataCache[urlToPath]?.map { fileName ->
-                val filePath = urlCacheDir.resolve(fileName)
-                fileSystem.read(filePath) {
-                    readUtf8()
-                }.run {
-                    Json.decodeFromString<SerializableCachedResponseData>(this)
-                }.cachedResponseData
-            }?.toSet() ?: emptySet()
-        } catch (ex: Exception) {
-            LOGGER.error("Can't [findAll] cache: $url", ex)
-            return emptySet()
-        }
+        metadataCache[urlToPath]?.map { fileName ->
+            val filePath = urlCacheDir.resolve(fileName)
+            fileSystem.read(filePath) {
+                readUtf8()
+            }.run {
+                Json.decodeFromString<SerializableCachedResponseData>(this)
+            }.cachedResponseData
+        }?.toSet() ?: emptySet()
     }
 
     override suspend fun store(
         url: Url,
         data: CachedResponseData,
     ): Unit = lock.withLock {
-        try {
-            val urlToPath = urlToPath(url)
-            val urlCacheDir = cacheDir.resolve(urlToPath)
-            if (!fileSystem.exists(urlCacheDir)) {
-                fileSystem.createDirectory(urlCacheDir)
-            }
+        val urlToPath = urlToPath(url)
+        val urlCacheDir = cacheDir.resolve(urlToPath)
+        if (!fileSystem.exists(urlCacheDir)) {
+            fileSystem.createDirectory(urlCacheDir)
+        }
 
-            val varyKeyHash = hashVaryKeys(data.varyKeys)
-            val filePath = urlCacheDir.resolve(varyKeyHash)
+        val varyKeyHash = hashVaryKeys(data.varyKeys)
+        val filePath = urlCacheDir.resolve(varyKeyHash)
 
-            fileSystem.write(filePath) {
-                buffer.writeUtf8(Json.encodeToString(SerializableCachedResponseData(data)))
-            }
+        fileSystem.write(filePath) {
+            buffer.writeUtf8(Json.encodeToString(SerializableCachedResponseData(data)))
+        }
 
-            metadataCache.block {
-                if (!it.containsKey(urlToPath)) {
-                    it[urlToPath] = mutableSetOf(varyKeyHash)
-                }
-            }
-        } catch (ex: Exception) {
-            LOGGER.trace("Can't [store] cache: $url", ex)
+        metadataCache[urlToPath]?.run {
+            add(varyKeyHash)
+        } ?: run {
+            metadataCache[urlToPath] = mutableSetOf(varyKeyHash)
         }
     }
 
