@@ -8,6 +8,25 @@ The main goal is to make available file caching to many KMP target as possible.
 
 It's based on [OKIO dependency](https://square.github.io/okio/multiplatform/) and [kotlinx serialization](https://github.com/Kotlin/kotlinx.serialization).
 
+## Example
+
+```kotlin
+private val publicStorageCaching = KtorFileCaching()
+HttpClient {
+    install(HttpCache) {
+        publicStorage(publicStorageCaching)
+    }
+}
+```
+
+## Installation
+
+```kotlin
+implementation("io.github.frankois944:ktorfilecaching:0.3")
+```
+
+## Platforms
+
 The current supported targets are :
 
 | Target                | Supported  |
@@ -31,22 +50,3 @@ The current supported targets are :
 | mingwX64              | ✅          |
 | linuxX64              | ✅          |
 | linuxArm64            | ✅          |
-
-## Example
-
-```kotlin
-private val publicStorageCaching = KtorFileCaching(storedCacheDirectory = "publicCache".toPath())
-val client = ApiClient(
-                HttpClient {
-                    install(HttpCache) {
-                        publicStorage(publicStorageCaching)
-                    }
-                },
-            )
-```
-
-```kotlin
-commonMain.dependencies {
-    implementation("io.github.frankois944:ktorfilecaching4:0.3")
-}
-```
