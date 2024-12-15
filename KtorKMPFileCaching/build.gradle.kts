@@ -102,10 +102,8 @@ kotlin {
             implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.6.1")
         }
         androidNativeTest.dependencies {
-            implementation(libs.slf4j.android)
         }
         jvmTest.dependencies {
-            implementation(libs.slf4j.jvm)
         }
         val jsNodeTest by getting {
         }
