@@ -24,8 +24,22 @@ HttpClient {
 
 ## Installation
 
+### Kotlin JS for browser
+
 ```kotlin
-implementation("io.github.frankois944:ktorfilecaching:0.3")
+implementation("io.github.frankois944:ktorfilecaching-jsbrowser:0.4.1")
+```
+
+### Kotlin JS for NodeJS
+
+```kotlin
+implementation("io.github.frankois944:ktorfilecaching-jsnode:0.4.1")
+```
+
+### other platform
+
+```kotlin
+implementation("io.github.frankois944:ktorfilecaching:0.4.1")
 ```
 
 ## Platforms
