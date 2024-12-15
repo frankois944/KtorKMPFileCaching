@@ -1,4 +1,3 @@
-import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
@@ -8,6 +7,9 @@ plugins {
     alias(libs.plugins.kotlinSerialization)
     id("com.vanniktech.maven.publish") version "0.30.0"
 }
+
+
+val kotlinJsTargetAttribute = Attribute.of("kotlinJsTarget", String::class.java)
 
 kotlin {
     // every class, method, property must declare there visibility
@@ -20,9 +22,36 @@ kotlin {
         publishLibraryVariants("release", "debug")
     }
     jvm()
-    js {
+    js("jsNode") {
         nodejs {
             testTask {
+                useMocha {
+                    timeout = "5000" // Adjust as needed
+                }
+            }
+        }
+        attributes.attribute(kotlinJsTargetAttribute, targetName)
+        binaries.executable()
+    }
+    js("jsBrowser") {
+        browser {
+            testTask {
+                useKarma {
+                    useFirefoxHeadless()
+                }
+            }
+        }
+        attributes.attribute(kotlinJsTargetAttribute, targetName)
+        binaries.executable()
+    }
+    @OptIn(ExperimentalWasmDsl::class)
+    wasmJs {
+        moduleName = "ktorfilecaching"
+        browser {
+            testTask {
+                useKarma {
+                    useFirefoxHeadless()
+                }
             }
         }
         binaries.executable()
@@ -50,8 +79,19 @@ kotlin {
             implementation(libs.ktor.client.core)
             implementation(libs.okio)
         }
-        jsMain.dependencies {
-            api(libs.okio.nodefilesystem)
+        val jsNodeMain by getting {
+            dependencies {
+                api(libs.okio.nodefilesystem)
+            }
+        }
+        val jsBrowserMain by getting {
+            dependencies {
+                api(libs.okio.fakefilesystem)
+            }
+        }
+        wasmJsMain.dependencies {
+            implementation("org.jetbrains.kotlinx:kotlinx-browser:0.3")
+            implementation(libs.okio.fakefilesystem)
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)
@@ -67,9 +107,9 @@ kotlin {
         jvmTest.dependencies {
             implementation(libs.slf4j.jvm)
         }
-        jsTest.dependencies {
-            api(libs.okio.nodefilesystem)
-            implementation(npm("@js-joda/timezone", "2.3.0"))
+        val jsNodeTest by getting {
+        }
+        val jsBrowserTest by getting {
         }
     }
 }
