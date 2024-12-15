@@ -44,15 +44,6 @@ public class KtorFileCaching(
     @Suppress("ktlint:standard:property-naming")
     private val LOGGER = KtorSimpleLogger("fr.frankois944.ktorfilecaching")
 
-    init {
-        if (!fileSystem.exists(rootStoredCachePath)) {
-            fileSystem.createDirectories(rootStoredCachePath)
-        }
-        if (!fileSystem.exists(cacheDir)) {
-            fileSystem.createDirectory(cacheDir)
-        }
-    }
-
     /**
      * Purge cache
      * Delete in the filesystem all related files and directories
@@ -77,6 +68,11 @@ public class KtorFileCaching(
         url: Url,
         varyKeys: Map<String, String>,
     ): CachedResponseData? = lock.withLock {
+        LOGGER.debug("""
+            FIND: 
+            url = $url
+            varyKeys = $varyKeys
+        """.trimIndent())
         val urlCacheDir = cacheDir.resolve(urlToPath(url))
         val varyKeyHash = hashVaryKeys(varyKeys)
         cacheSystem.read(urlCacheDir, varyKeyHash)?.let {
@@ -88,6 +84,11 @@ public class KtorFileCaching(
         val urlToPath = urlToPath(url)
         val urlCacheDir = cacheDir.resolve(urlToPath)
         if (!cacheSystem.exist(urlCacheDir, null)) return emptySet()
+
+        LOGGER.debug("""
+            FINDALL: 
+            url = $url
+        """.trimIndent())
 
         metadataCache[urlToPath]?.addAll(cacheSystem.contentOf(urlCacheDir).map { it.name })
         metadataCache[urlToPath]?.mapNotNull { varyKeyHash ->
@@ -104,6 +105,11 @@ public class KtorFileCaching(
         val urlToPath = urlToPath(url)
         val urlCacheDir = cacheDir.resolve(urlToPath)
         val varyKeyHash = hashVaryKeys(data.varyKeys)
+        LOGGER.debug("""
+            STORE: 
+            url = $url
+            varyKeys = ${data.varyKeys}
+        """.trimIndent())
         cacheSystem.write(urlCacheDir, varyKeyHash, Json.encodeToString(SerializableCachedResponseData(data)))
         metadataCache[urlToPath]?.run {
             add(varyKeyHash)

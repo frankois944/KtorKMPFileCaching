@@ -5,8 +5,7 @@ import io.ktor.client.engine.mock.MockEngine
 import io.ktor.client.engine.mock.respond
 import io.ktor.client.plugins.cache.HttpCache
 import io.ktor.client.plugins.cache.storage.CachedResponseData
-import io.ktor.client.plugins.logging.LogLevel
-import io.ktor.client.plugins.logging.Logging
+import io.ktor.client.plugins.logging.*
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpProtocolVersion
@@ -26,7 +25,7 @@ import kotlin.test.*
 
 class CommonGreetingTest {
 
-    private val caching = KtorFileCaching(storedCacheDirectory = "testCache".toPath(), fileSystem =  FakeFileSystem())
+    private val caching = KtorFileCaching(storedCacheDirectory = "testCache".toPath(), fileSystem = FakeFileSystem())
 
     @ExperimentalCoroutinesApi
     @BeforeTest
@@ -75,7 +74,7 @@ class CommonGreetingTest {
     }
 
     @Test
-    fun testKtorCache() = runTest {
+    fun testSimpleKtorCache() = runTest {
         val mockEngine =
             MockEngine {
                 respond(
@@ -108,7 +107,14 @@ class CommonGreetingTest {
                     install(HttpCache) {
                         publicStorage(caching)
                     }
-                    install(Logging) { level = LogLevel.INFO }
+                    install(Logging) {
+                        logger = object : Logger {
+                            override fun log(message: String) {
+                                println(message)
+                            }
+                        }
+                        level = LogLevel.ALL
+                    }
                 },
             )
 
@@ -118,6 +124,76 @@ class CommonGreetingTest {
         assertEquals(firstResponse.headers, cachedResponse.headers)
         assertEquals(firstResponse.status, cachedResponse.status)
         client.httpClient.close()
+    }
+
+
+    @Test
+    fun testComplexKtorCache() = runTest {
+        var index = 0
+        // build a list of request with 1 param with body
+        // Pair<String, ByteReadChannel>, for 1 parameter and the body content
+        val iteration = buildList {
+            repeat(6) {
+                add(
+                    Pair(
+                        "Request_param__${index++}",
+                        ByteReadChannel(
+                            """
+            {"ip":"127.0.0.1", "time" : ${Clock.System.now()}, "data" : ${Clock.System.now().nanosecondsOfSecond}}
+            """.trimIndent()
+                        )
+                    )
+                )
+            }
+        }
+        // build a big list of randomized request from the original list of request
+        val bodies = (iteration + iteration + iteration).shuffled()
+        bodies.forEach { body ->
+            val mockEngine =
+                MockEngine {
+                    respond(
+                        content = body.second,
+                        status = HttpStatusCode.OK,
+                        headers = headersOf(
+                            Pair(
+                                HttpHeaders.ContentType,
+                                listOf("application/json")
+                            ),
+                            Pair(
+                                HttpHeaders.Date,
+                                listOf(Clock.System.now().toString()),
+                            ),
+                            Pair(
+                                HttpHeaders.CacheControl,
+                                listOf("max-age=600")
+                            )
+                        ),
+                    )
+                }
+
+            val client =
+                ApiClient(
+                    HttpClient(mockEngine) {
+                        install(HttpCache) {
+                            publicStorage(caching)
+                        }
+                        install(Logging) {
+                            logger = object : Logger {
+                                override fun log(message: String) {
+                                    println(message)
+                                }
+                            }
+                            level = LogLevel.ALL
+                        }
+                    },
+                )
+
+            val firstResponse = client.getIpWithParam(body.first)
+            val cachedResponse = client.getIpWithParam(body.first)
+            assertEquals(firstResponse.bodyAsText(), cachedResponse.bodyAsText())
+            assertEquals(firstResponse.headers, cachedResponse.headers)
+            assertEquals(firstResponse.status, cachedResponse.status)
+        }
     }
 
     @Test
