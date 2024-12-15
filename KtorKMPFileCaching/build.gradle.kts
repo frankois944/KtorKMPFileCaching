@@ -31,7 +31,6 @@ kotlin {
             }
         }
         attributes.attribute(kotlinJsTargetAttribute, targetName)
-        binaries.executable()
     }
     js("jsBrowser") {
         browser {
@@ -42,7 +41,6 @@ kotlin {
             }
         }
         attributes.attribute(kotlinJsTargetAttribute, targetName)
-        binaries.executable()
     }
     @OptIn(ExperimentalWasmDsl::class)
     wasmJs {
@@ -54,7 +52,6 @@ kotlin {
                 }
             }
         }
-        binaries.executable()
     }
     iosX64()
     iosArm64()
@@ -129,7 +126,7 @@ mavenPublishing {
     coordinates(
         groupId = "io.github.frankois944",
         artifactId = "ktorfilecaching",
-        version = "0.4"
+        version = "0.4.1"
     )
 
     // Configure POM metadata for the published artifact
