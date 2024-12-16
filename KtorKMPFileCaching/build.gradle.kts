@@ -74,7 +74,7 @@ kotlin {
             implementation(libs.kotlin.serialization)
             implementation(libs.kotlin.coroutines)
             implementation(libs.ktor.client.core)
-            implementation(libs.okio)
+            api(libs.okio)
         }
         val jsNodeMain by getting {
             dependencies {
@@ -87,8 +87,8 @@ kotlin {
             }
         }
         wasmJsMain.dependencies {
-            implementation("org.jetbrains.kotlinx:kotlinx-browser:0.3")
-            implementation(libs.okio.fakefilesystem)
+            implementation(libs.kotlinx.browser)
+            api(libs.okio.fakefilesystem)
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)
@@ -96,7 +96,7 @@ kotlin {
             implementation(libs.ktor.client.mock)
             implementation(libs.kotlin.coroutines.test)
             implementation(libs.ktor.client.logging)
-            implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.6.1")
+            implementation(libs.kotlinx.datetime)
         }
         androidNativeTest.dependencies {
         }
