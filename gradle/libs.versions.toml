@@ -7,6 +7,8 @@ ktor = "3.0.2"
 okio = "3.9.1" # https://square.github.io/okio/changelog/
 slf4jAndroid="1.7.36"
 slf4jJvm="2.0.13"
+kotlinx-browser="0.3"
+kotlinx-datetime="0.6.1"
 
 [libraries]
 ktor-client-core = { module = "io.ktor:ktor-client-core", version.ref = "ktor" }
@@ -21,6 +23,8 @@ okio-fakefilesystem = { module = "com.squareup.okio:okio-fakefilesystem", versio
 okio-nodefilesystem = { module = "com.squareup.okio:okio-nodefilesystem", version.ref = "okio" }
 slf4j-android = { module = "org.slf4j:slf4j-android", version.ref = "slf4jAndroid" }
 slf4j-jvm = { module = "org.slf4j:slf4j-api", version.ref = "slf4jJvm" }
+kotlinx-browser = { module = "org.jetbrains.kotlinx:kotlinx-browser", version.ref = "kotlinx-browser" }
+kotlinx-datetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version.ref = "kotlinx-datetime" }
 
 [plugins]
 androidLibrary = { id = "com.android.library", version.ref = "agp" }
