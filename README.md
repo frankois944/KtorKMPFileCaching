@@ -1,5 +1,5 @@
 # Ktor KMP File Caching
-[![Tests](https://github.com/frankois944/KtorKMPFileCaching/actions/workflows/blank.yml/badge.svg)](https://github.com/frankois944/KtorKMPFileCaching/actions/workflows/blank.yml)
+[![Tests](https://github.com/frankois944/KtorKMPFileCaching/actions/workflows/tests.yml/badge.svg)](https://github.com/frankois944/KtorKMPFileCaching/actions/workflows/tests.yml)
 
 This project add a file caching for [Ktor client caching](https://ktor.io/docs/client-caching.html).
 
