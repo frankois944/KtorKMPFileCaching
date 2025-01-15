@@ -1,0 +1,55 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="Test everything" type="GradleRunConfiguration" factoryName="Gradle">
+    <ExternalSystemSettings>
+      <option name="executionName" />
+      <option name="externalProjectPath" value="$PROJECT_DIR$/KtorKMPFileCaching" />
+      <option name="externalSystemIdString" value="GRADLE" />
+      <option name="scriptParameters" value="--continue" />
+      <option name="taskDescriptions">
+        <list />
+      </option>
+      <option name="taskNames">
+        <list>
+          <option value=":KtorKMPFileCaching:cleanJsNodeNodeTest" />
+          <option value=":KtorKMPFileCaching:jsNodeNodeTest" />
+          <option value="--tests" />
+          <option value="&quot;fr.frankois944.ktorfilecaching.CommonGreetingTest&quot;" />
+          <option value=":KtorKMPFileCaching:cleanJvmTest" />
+          <option value=":KtorKMPFileCaching:jvmTest" />
+          <option value="--tests" />
+          <option value="&quot;fr.frankois944.ktorfilecaching.CommonGreetingTest&quot;" />
+          <option value=":KtorKMPFileCaching:cleanWasmJsBrowserTest" />
+          <option value=":KtorKMPFileCaching:wasmJsBrowserTest" />
+          <option value="--tests" />
+          <option value="&quot;fr.frankois944.ktorfilecaching.CommonGreetingTest&quot;" />
+          <option value=":KtorKMPFileCaching:cleanIosSimulatorArm64Test" />
+          <option value=":KtorKMPFileCaching:iosSimulatorArm64Test" />
+          <option value="--tests" />
+          <option value="&quot;fr.frankois944.ktorfilecaching.CommonGreetingTest&quot;" />
+          <option value=":KtorKMPFileCaching:cleanTestReleaseUnitTest" />
+          <option value=":KtorKMPFileCaching:testReleaseUnitTest" />
+          <option value="--tests" />
+          <option value="&quot;fr.frankois944.ktorfilecaching.CommonGreetingTest&quot;" />
+          <option value=":KtorKMPFileCaching:cleanMacosArm64Test" />
+          <option value=":KtorKMPFileCaching:macosArm64Test" />
+          <option value="--tests" />
+          <option value="&quot;fr.frankois944.ktorfilecaching.CommonGreetingTest&quot;" />
+          <option value=":KtorKMPFileCaching:cleanJsBrowserBrowserTest" />
+          <option value=":KtorKMPFileCaching:jsBrowserBrowserTest" />
+          <option value="--tests" />
+          <option value="&quot;fr.frankois944.ktorfilecaching.CommonGreetingTest&quot;" />
+          <option value=":KtorKMPFileCaching:cleanTestDebugUnitTest" />
+          <option value=":KtorKMPFileCaching:testDebugUnitTest" />
+          <option value="--tests" />
+          <option value="&quot;fr.frankois944.ktorfilecaching.CommonGreetingTest&quot;" />
+        </list>
+      </option>
+      <option name="vmOptions" />
+    </ExternalSystemSettings>
+    <ExternalSystemDebugServerProcess>false</ExternalSystemDebugServerProcess>
+    <ExternalSystemReattachDebugProcess>true</ExternalSystemReattachDebugProcess>
+    <DebugAllEnabled>false</DebugAllEnabled>
+    <RunAsTest>true</RunAsTest>
+    <method v="2" />
+  </configuration>
+</component>
