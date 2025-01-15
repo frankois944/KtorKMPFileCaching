@@ -224,6 +224,7 @@ class CommonGreetingTest {
                 )
             }
 
+        delay(500)
         val client =
             ApiClient(
                 HttpClient(mockEngine) {
