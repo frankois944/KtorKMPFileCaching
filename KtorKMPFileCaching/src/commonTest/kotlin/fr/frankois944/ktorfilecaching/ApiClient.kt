@@ -7,8 +7,6 @@ class ApiClient(
     val httpClient: HttpClient,
 ) {
     suspend fun getIp() = httpClient.get("https://api.ipify.org/?format=json")
+
     suspend fun getIpWithParam(param: String) = httpClient.get("https://api.ipify.org/?format=json&param=$param")
-    suspend fun getIpWithParamAndBody(param: String, body: String) = httpClient.post("https://api.ipify.org/?format=json&param=$param") {
-        setBody(body)
-    }
 }
