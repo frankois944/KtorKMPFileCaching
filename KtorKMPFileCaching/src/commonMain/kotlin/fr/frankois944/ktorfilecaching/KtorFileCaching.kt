@@ -6,7 +6,6 @@ import io.ktor.http.Url
 import io.ktor.util.logging.KtorSimpleLogger
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
-import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import okio.FileSystem
 import okio.Path
@@ -27,15 +26,14 @@ internal expect fun filesystem(): FileSystem
 public class KtorFileCaching(
     storedCacheDirectory: Path = "KTorFileCaching".toPath(),
     rootStoredCachePath: Path = FileSystem.SYSTEM_TEMPORARY_DIRECTORY,
-    private val fileSystem: FileSystem = filesystem()
+    private val fileSystem: FileSystem = filesystem(),
 ) : CacheStorage {
-
-    //<editor-fold desc="Path">
+    // <editor-fold desc="Path">
 
     private val cacheDir = "$rootStoredCachePath${Path.DIRECTORY_SEPARATOR}$storedCacheDirectory".toPath()
     private val cacheSystem = CacheSystem(fileSystem, cacheDir)
 
-    //</editor-fold>
+    // </editor-fold>
 
     private val lock = Mutex() // Coroutine-friendly lock for thread safety
     private val metadataCache =
@@ -67,62 +65,72 @@ public class KtorFileCaching(
     override suspend fun find(
         url: Url,
         varyKeys: Map<String, String>,
-    ): CachedResponseData? = lock.withLock {
-        LOGGER.debug("""
-            FIND: 
-            url = $url
-            varyKeys = $varyKeys
-        """.trimIndent())
-        val urlCacheDir = cacheDir.resolve(urlToPath(url))
-        val varyKeyHash = hashVaryKeys(varyKeys)
-        cacheSystem.read(urlCacheDir, varyKeyHash)?.let {
-            Json.decodeFromString<SerializableCachedResponseData>(it)
-        }?.cachedResponseData
-    }
+    ): CachedResponseData? =
+        lock.withLock {
+            LOGGER.debug(
+                """
+                FIND: 
+                url = $url
+                varyKeys = $varyKeys
+                """.trimIndent(),
+            )
+            val urlCacheDir = cacheDir.resolve(urlToPath(url))
+            val varyKeyHash = hashVaryKeys(varyKeys)
+            cacheSystem
+                .read(urlCacheDir, varyKeyHash)
+                ?.let {
+                    Json.decodeFromString<SerializableCachedResponseData>(it)
+                }?.cachedResponseData
+        }
 
-    override suspend fun findAll(url: Url): Set<CachedResponseData> = lock.withLock {
-        val urlToPath = urlToPath(url)
-        val urlCacheDir = cacheDir.resolve(urlToPath)
-        if (!cacheSystem.exist(urlCacheDir, null)) return emptySet()
+    override suspend fun findAll(url: Url): Set<CachedResponseData> =
+        lock.withLock {
+            val urlToPath = urlToPath(url)
+            val urlCacheDir = cacheDir.resolve(urlToPath)
+            if (!cacheSystem.exist(urlCacheDir, null)) return emptySet()
 
-        LOGGER.debug("""
-            FINDALL: 
-            url = $url
-        """.trimIndent())
+            LOGGER.debug(
+                """
+                FINDALL: 
+                url = $url
+                """.trimIndent(),
+            )
 
-        metadataCache[urlToPath]?.addAll(cacheSystem.contentOf(urlCacheDir).map { it.name })
-        metadataCache[urlToPath]?.mapNotNull { varyKeyHash ->
-            cacheSystem.read(urlCacheDir, varyKeyHash)?.let {
-                Json.decodeFromString<SerializableCachedResponseData>(it)
-            }?.cachedResponseData
-        }?.toSet() ?: emptySet()
-    }
+            metadataCache[urlToPath]?.addAll(cacheSystem.contentOf(urlCacheDir).map { it.name })
+            metadataCache[urlToPath]
+                ?.mapNotNull { varyKeyHash ->
+                    cacheSystem
+                        .read(urlCacheDir, varyKeyHash)
+                        ?.let {
+                            Json.decodeFromString<SerializableCachedResponseData>(it)
+                        }?.cachedResponseData
+                }?.toSet() ?: emptySet()
+        }
 
     override suspend fun store(
         url: Url,
         data: CachedResponseData,
-    ): Unit = lock.withLock {
-        val urlToPath = urlToPath(url)
-        val urlCacheDir = cacheDir.resolve(urlToPath)
-        val varyKeyHash = hashVaryKeys(data.varyKeys)
-        LOGGER.debug("""
-            STORE: 
-            url = $url
-            varyKeys = ${data.varyKeys}
-        """.trimIndent())
-        cacheSystem.write(urlCacheDir, varyKeyHash, Json.encodeToString(SerializableCachedResponseData(data)))
-        metadataCache[urlToPath]?.run {
-            add(varyKeyHash)
-        } ?: run {
-            metadataCache[urlToPath] = mutableSetOf(varyKeyHash)
+    ): Unit =
+        lock.withLock {
+            val urlToPath = urlToPath(url)
+            val urlCacheDir = cacheDir.resolve(urlToPath)
+            val varyKeyHash = hashVaryKeys(data.varyKeys)
+            LOGGER.debug(
+                """
+                STORE: 
+                url = $url
+                varyKeys = ${data.varyKeys}
+                """.trimIndent(),
+            )
+            cacheSystem.write(urlCacheDir, varyKeyHash, Json.encodeToString(SerializableCachedResponseData(data)))
+            metadataCache[urlToPath]?.run {
+                add(varyKeyHash)
+            } ?: run {
+                metadataCache[urlToPath] = mutableSetOf(varyKeyHash)
+            }
         }
-    }
 
-    private fun urlToPath(url: Url): String {
-        return url.hashCode().toString()
-    }
+    private fun urlToPath(url: Url): String = url.hashCode().toString()
 
-    private fun hashVaryKeys(varyKeys: Map<String, String>): String {
-        return varyKeys.hashCode().toString()
-    }
+    private fun hashVaryKeys(varyKeys: Map<String, String>): String = varyKeys.hashCode().toString()
 }

@@ -10,53 +10,66 @@ import okio.fakefilesystem.FakeFileSystem
 
 internal actual fun filesystem(): FileSystem = FakeFileSystem()
 
-internal actual class CacheSystem actual constructor(fileSystem: FileSystem, cacheDir: Path) {
-
-    private fun buildKeyPath(key: Path, varyKeyHash: String?): String {
-        return varyKeyHash?.let {
-            "${prefix}_${key}_${varyKeyHash}"
+internal actual class CacheSystem actual constructor(
+    fileSystem: FileSystem,
+    cacheDir: Path,
+) {
+    private fun buildKeyPath(
+        key: Path,
+        varyKeyHash: String?,
+    ): String =
+        varyKeyHash?.let {
+            "${prefix}_${key}_$varyKeyHash"
         } ?: run {
-            "${prefix}_${key}"
+            "${prefix}_$key"
         }
-    }
 
-    internal actual fun exist(key: Path, varyKeyHash: String?): Boolean {
-        return varyKeyHash?.let {
+    internal actual fun exist(
+        key: Path,
+        varyKeyHash: String?,
+    ): Boolean =
+        varyKeyHash?.let {
             getIndex().contains(buildKeyPath(key, varyKeyHash))
         } ?: run {
             getIndex().firstOrNull { item ->
                 item.startsWith(buildKeyPath(key, null))
             } != null
         }
-    }
 
-    internal actual fun write(key: Path, varyKeyHash: String, value: String) {
+    internal actual fun write(
+        key: Path,
+        varyKeyHash: String,
+        value: String,
+    ) {
         with(buildKeyPath(key, varyKeyHash)) {
             window.localStorage.setItem(this, value)
             addToIndex(this)
         }
     }
 
-    internal actual fun contentOf(key: Path): Set<Path> {
-        return getIndex().map { index ->
-            index.split("_")[2].toPath()
-        }.toSet()
-    }
+    internal actual fun contentOf(key: Path): Set<Path> =
+        getIndex()
+            .map { index ->
+                index.split("_")[2].toPath()
+            }.toSet()
 
-    internal actual fun read(key: Path, varyKeyHash: String): String? {
-        return with(buildKeyPath(key, varyKeyHash)) {
+    internal actual fun read(
+        key: Path,
+        varyKeyHash: String,
+    ): String? =
+        with(buildKeyPath(key, varyKeyHash)) {
             window.localStorage.getItem(this)
         }
-    }
 
     internal actual fun purge(key: Path?) {
         key?.let {
-            getIndex().filter { item ->
-                item.startsWith(buildKeyPath(key, null))
-            }.forEach { index ->
-                window.localStorage.removeItem(index)
-                removeFromIndex(index)
-            }
+            getIndex()
+                .filter { item ->
+                    item.startsWith(buildKeyPath(key, null))
+                }.forEach { index ->
+                    window.localStorage.removeItem(index)
+                    removeFromIndex(index)
+                }
         } ?: run {
             getIndex().forEach {
                 window.localStorage.removeItem(it)

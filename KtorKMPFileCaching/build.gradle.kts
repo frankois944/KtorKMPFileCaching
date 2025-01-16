@@ -8,7 +8,6 @@ plugins {
     alias(libs.plugins.publish)
 }
 
-
 val kotlinJsTargetAttribute = Attribute.of("kotlinJsTarget", String::class.java)
 
 kotlin {
@@ -126,13 +125,15 @@ mavenPublishing {
     coordinates(
         groupId = "io.github.frankois944",
         artifactId = "ktorfilecaching",
-        version = "0.4.3"
+        version = "0.4.3",
     )
 
     // Configure POM metadata for the published artifact
     pom {
         name.set("KMP Library for Ktor client file caching")
-        description.set("This library can be used by a lot of targets for enabling the file caching of Ktor caching (https://ktor.io/docs/client-caching.html) ")
+        description.set(
+            "This library can be used by a lot of targets for enabling the file caching of Ktor caching (https://ktor.io/docs/client-caching.html) ",
+        )
         inceptionYear.set("2024")
         url.set("https://github.com/frankois944/KtorKMPFileCaching")
 

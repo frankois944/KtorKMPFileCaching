@@ -7,16 +7,18 @@ import okio.Path
 
 internal actual class CacheSystem actual constructor(
     private val fileSystem: FileSystem,
-    private val cacheDir: Path
+    private val cacheDir: Path,
 ) {
-
     init {
         if (!fileSystem.exists(cacheDir)) {
             fileSystem.createDirectories(cacheDir, true)
         }
     }
 
-    internal actual fun exist(key: Path, varyKeyHash: String?): Boolean {
+    internal actual fun exist(
+        key: Path,
+        varyKeyHash: String?,
+    ): Boolean {
         varyKeyHash?.let {
             val filePath = key.resolve(varyKeyHash)
             return fileSystem.exists(filePath)
@@ -25,8 +27,11 @@ internal actual class CacheSystem actual constructor(
         }
     }
 
-
-    internal actual fun write(key: Path, varyKeyHash: String, value: String) {
+    internal actual fun write(
+        key: Path,
+        varyKeyHash: String,
+        value: String,
+    ) {
         if (!fileSystem.exists(key)) {
             fileSystem.createDirectories(key, true)
         }
@@ -36,11 +41,12 @@ internal actual class CacheSystem actual constructor(
         }
     }
 
-    internal actual fun contentOf(key: Path): Set<Path> {
-        return fileSystem.list(key).toSet()
-    }
+    internal actual fun contentOf(key: Path): Set<Path> = fileSystem.list(key).toSet()
 
-    internal actual fun read(key: Path, varyKeyHash: String): String? {
+    internal actual fun read(
+        key: Path,
+        varyKeyHash: String,
+    ): String? {
         val filePath = key.resolve(varyKeyHash)
         return if (fileSystem.exists(filePath)) {
             fileSystem.read(filePath) {
