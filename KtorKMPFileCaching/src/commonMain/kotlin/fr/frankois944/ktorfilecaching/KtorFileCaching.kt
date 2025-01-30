@@ -1,5 +1,8 @@
 package fr.frankois944.ktorfilecaching
 
+import androidx.collection.MutableScatterSet
+import androidx.collection.mutableScatterMapOf
+import androidx.collection.mutableScatterSetOf
 import io.ktor.client.plugins.cache.storage.CacheStorage
 import io.ktor.client.plugins.cache.storage.CachedResponseData
 import io.ktor.http.Url
@@ -10,8 +13,6 @@ import kotlinx.serialization.json.Json
 import okio.FileSystem
 import okio.Path
 import okio.Path.Companion.toPath
-
-internal expect fun filesystem(): FileSystem
 
 /**
  * Ktor file caching
@@ -37,7 +38,7 @@ public class KtorFileCaching(
 
     private val lock = Mutex() // Coroutine-friendly lock for thread safety
     private val metadataCache =
-        mutableMapOf<String, MutableSet<String>>() // In-memory metadata cache for fast lookup
+        mutableScatterMapOf<String, MutableScatterSet<String>>() // In-memory metadata cache for fast lookup
 
     @Suppress("ktlint:standard:property-naming")
     private val LOGGER = KtorSimpleLogger("fr.frankois944.ktorfilecaching")
@@ -96,15 +97,25 @@ public class KtorFileCaching(
                 """.trimIndent(),
             )
 
-            metadataCache[urlToPath]?.addAll(cacheSystem.contentOf(urlCacheDir).map { it.name })
-            metadataCache[urlToPath]
-                ?.mapNotNull { varyKeyHash ->
+            val result = mutableScatterSetOf<CachedResponseData>()
+            metadataCache[urlToPath]?.run {
+                val values = mutableScatterSetOf<String>()
+                cacheSystem.contentOf(urlCacheDir).forEach {
+                    values.add(it.name)
+                }
+                metadataCache[urlToPath] = values
+                forEach { varyKeyHash ->
                     cacheSystem
                         .read(urlCacheDir, varyKeyHash)
                         ?.let {
                             Json.decodeFromString<SerializableCachedResponseData>(it)
                         }?.cachedResponseData
-                }?.toSet() ?: emptySet()
+                        ?.run {
+                            result.add(this)
+                        }
+                }
+            }
+            return result.asSet()
         }
 
     override suspend fun store(
@@ -126,7 +137,7 @@ public class KtorFileCaching(
             metadataCache[urlToPath]?.run {
                 add(varyKeyHash)
             } ?: run {
-                metadataCache[urlToPath] = mutableSetOf(varyKeyHash)
+                metadataCache[urlToPath] = mutableScatterSetOf(varyKeyHash)
             }
         }
 

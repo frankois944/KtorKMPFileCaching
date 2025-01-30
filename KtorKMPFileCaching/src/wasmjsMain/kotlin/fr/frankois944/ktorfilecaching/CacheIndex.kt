@@ -1,26 +1,28 @@
 package fr.frankois944.ktorfilecaching
 
+import androidx.collection.MutableScatterSet
+import androidx.collection.ScatterSet
+import androidx.collection.mutableScatterSetOf
 import kotlinx.browser.window
-import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
 private var cacheIndex: MutableSet<String>? = null
 internal val prefix = "fr.frankois944.ktorfilecaching_key"
 
-private fun loadIndex(): MutableSet<String> {
+private fun loadIndex(): MutableScatterSet<String> {
     if (cacheIndex == null) {
         window.localStorage.getItem("${prefix}_index")?.let {
             cacheIndex = Json.decodeFromString(it)
         }
     }
-    return cacheIndex ?: mutableSetOf()
+    return cacheIndex ?: mutableScatterSetOf()
 }
 
-private fun saveIndex(value: Set<String>) {
+private fun saveIndex(value: ScatterSet<String>) {
     window.localStorage.setItem("${prefix}_index", Json.encodeToString(value))
 }
 
-internal fun getIndex(): Set<String> = loadIndex()
+internal fun getIndex(): ScatterSet<String> = loadIndex()
 
 internal fun addToIndex(value: String) {
     with(loadIndex()) {
