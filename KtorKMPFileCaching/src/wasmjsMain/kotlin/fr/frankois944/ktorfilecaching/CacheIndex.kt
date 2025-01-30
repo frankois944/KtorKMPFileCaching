@@ -13,7 +13,7 @@ private fun loadIndex(): MutableScatterSet<String> {
     if (cacheIndex == null) {
         window.localStorage.getItem("${prefix}_index")?.let {
             Json.decodeFromString<Set<String>>(it).run {
-                cacheIndex = mutableScatterSetOf<String>().apply { addAll(this) }
+                cacheIndex = mutableScatterSetOf<String>().apply { addAll(this@run) }
             }
         }
     }
