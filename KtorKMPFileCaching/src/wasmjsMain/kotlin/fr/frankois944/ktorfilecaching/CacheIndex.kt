@@ -6,20 +6,25 @@ import androidx.collection.mutableScatterSetOf
 import kotlinx.browser.window
 import kotlinx.serialization.json.Json
 
-private var cacheIndex: MutableSet<String>? = null
+private var cacheIndex: MutableScatterSet<String>? = null
 internal val prefix = "fr.frankois944.ktorfilecaching_key"
 
 private fun loadIndex(): MutableScatterSet<String> {
     if (cacheIndex == null) {
         window.localStorage.getItem("${prefix}_index")?.let {
-            cacheIndex = Json.decodeFromString(it)
+            Json.decodeFromString<Set<String>>(it).run {
+                cacheIndex = mutableScatterSetOf<String>().apply { addAll(this) }
+            }
         }
     }
     return cacheIndex ?: mutableScatterSetOf()
 }
 
 private fun saveIndex(value: ScatterSet<String>) {
-    window.localStorage.setItem("${prefix}_index", Json.encodeToString(value))
+    window.localStorage.setItem("${prefix}_index", Json.encodeToString(value.asSet()))
+    if (cacheIndex == null) {
+        cacheIndex = mutableScatterSetOf<String>().apply { addAll(value) }
+    }
 }
 
 internal fun getIndex(): ScatterSet<String> = loadIndex()
