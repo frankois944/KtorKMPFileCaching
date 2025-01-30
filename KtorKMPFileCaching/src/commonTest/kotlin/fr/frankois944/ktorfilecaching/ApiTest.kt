@@ -116,7 +116,7 @@ class ApiTest {
                     )
                 }
 
-            delay(500)
+            delay(1000)
 
             val client =
                 ApiClient(
@@ -248,7 +248,7 @@ class ApiTest {
                     )
                 }
 
-            delay(500)
+            delay(1000)
             val client =
                 ApiClient(
                     HttpClient(mockEngine) {
