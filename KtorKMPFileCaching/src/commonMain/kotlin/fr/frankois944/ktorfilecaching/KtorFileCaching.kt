@@ -13,6 +13,7 @@ import kotlinx.serialization.json.Json
 import okio.FileSystem
 import okio.Path
 import okio.Path.Companion.toPath
+import kotlin.String
 
 /**
  * Ktor file caching
@@ -97,26 +98,20 @@ public class KtorFileCaching(
                 """.trimIndent(),
             )
 
-            if (metadataCache[urlToPath] == null) {
-                metadataCache[urlToPath] =
-                    mutableScatterSetOf<String>().apply {
-                        cacheSystem.contentOf(urlCacheDir).forEach {
-                            add(it.name)
-                        }
+            loadCacheOfPath(urlToPath, urlCacheDir)
+            return@withLock mutableScatterSetOf<CachedResponseData>()
+                .apply {
+                    metadataCache[urlToPath]?.forEach { varyKeyHash ->
+                        cacheSystem
+                            .read(urlCacheDir, varyKeyHash)
+                            ?.let {
+                                Json.decodeFromString<SerializableCachedResponseData>(it)
+                            }?.cachedResponseData
+                            ?.let {
+                                this.add(it)
+                            }
                     }
-            }
-            val result = mutableScatterSetOf<CachedResponseData>()
-            metadataCache[urlToPath]?.forEach { varyKeyHash ->
-                cacheSystem
-                    .read(urlCacheDir, varyKeyHash)
-                    ?.let {
-                        Json.decodeFromString<SerializableCachedResponseData>(it)
-                    }?.cachedResponseData
-                    ?.let {
-                        result.add(it)
-                    }
-            }
-            return result.asSet()
+                }.asSet()
         }
 
     override suspend fun store(
@@ -134,6 +129,7 @@ public class KtorFileCaching(
                 varyKeys = ${data.varyKeys}
                 """.trimIndent(),
             )
+            // loadCacheOfPath(urlToPath, urlCacheDir)
             cacheSystem.write(urlCacheDir, varyKeyHash, Json.encodeToString(SerializableCachedResponseData(data)))
             metadataCache[urlToPath]?.run {
                 add(varyKeyHash)
@@ -145,4 +141,18 @@ public class KtorFileCaching(
     private fun urlToPath(url: Url): String = url.hashCode().toString()
 
     private fun hashVaryKeys(varyKeys: Map<String, String>): String = varyKeys.hashCode().toString()
+
+    private fun loadCacheOfPath(
+        urlToPath: String,
+        urlCacheDir: Path,
+    ) {
+        if (metadataCache[urlToPath] == null) {
+            metadataCache[urlToPath] =
+                mutableScatterSetOf<String>().apply {
+                    cacheSystem.contentOf(urlCacheDir).forEach {
+                        this.add(it.name)
+                    }
+                }
+        }
+    }
 }
