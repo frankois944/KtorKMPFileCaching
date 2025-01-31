@@ -256,7 +256,7 @@ class ApiTest {
                 )
 
             val firstResponse = client.getIp()
-            delay(500)
+            delay(750)
             val cachedResponse = client.getIp()
             assertNotEquals(firstResponse.bodyAsText(), cachedResponse.bodyAsText())
             assertNotEquals(firstResponse.headers, cachedResponse.headers)

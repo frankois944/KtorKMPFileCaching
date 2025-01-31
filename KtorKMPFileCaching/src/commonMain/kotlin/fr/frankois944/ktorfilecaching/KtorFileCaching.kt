@@ -134,7 +134,7 @@ public class KtorFileCaching(
                 varyKeys = ${data.varyKeys}
                 """.trimIndent(),
                 )
-                //loadCacheOfPath(urlToPath, urlCacheDir)
+                loadCacheOfPath(urlToPath, urlCacheDir)
                 cacheSystem.write(urlCacheDir, varyKeyHash, Json.encodeToString(SerializableCachedResponseData(data)))
                 metadataCache[urlToPath]?.run {
                     add(varyKeyHash)

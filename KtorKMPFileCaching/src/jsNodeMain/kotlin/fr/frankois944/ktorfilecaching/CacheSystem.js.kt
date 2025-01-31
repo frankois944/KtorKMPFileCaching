@@ -46,10 +46,12 @@ internal actual class CacheSystem actual constructor(
         }
     }
 
-    internal actual fun contentOf(key: Path): ScatterSet<Path> =
-        fileSystem.list(key).run {
+    internal actual fun contentOf(key: Path): ScatterSet<Path> {
+        if (!fileSystem.exists(key)) return scatterSetOf()
+        return fileSystem.list(key).run {
             scatterSetOf(*this.toTypedArray())
         }
+    }
 
     internal actual fun read(
         key: Path,
