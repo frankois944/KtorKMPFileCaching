@@ -7,8 +7,11 @@ import io.ktor.client.plugins.cache.storage.CacheStorage
 import io.ktor.client.plugins.cache.storage.CachedResponseData
 import io.ktor.http.Url
 import io.ktor.util.logging.KtorSimpleLogger
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
 import okio.FileSystem
 import okio.Path
@@ -18,16 +21,15 @@ import kotlin.String
 /**
  * Ktor file caching
  *
- * @property fileSystem
- * @constructor
- *
- * @param storedCacheDirectory the directories where the cache is, by default it's KTorFileCaching
- * @param rootStoredCachePath the root directory, by default it's SYSTEM_TEMPORARY_DIRECTORY of okio
+ * @param storedCacheDirectory the directories where the cache is, by default : `KTorFileCaching`
+ * @param rootStoredCachePath the root directory, by default : `SYSTEM_TEMPORARY_DIRECTORY` of okio
+ * @param dispatcher to use for writing file operations
  * @param fileSystem the okio filesystem instance
  */
 public class KtorFileCaching(
     storedCacheDirectory: Path = "KTorFileCaching".toPath(),
     rootStoredCachePath: Path = FileSystem.SYSTEM_TEMPORARY_DIRECTORY,
+    private val dispatcher: CoroutineDispatcher = Dispatchers.Default,
     private val fileSystem: FileSystem = filesystem(),
 ) : CacheStorage {
     // <editor-fold desc="Path">
@@ -52,15 +54,17 @@ public class KtorFileCaching(
      */
     public suspend fun purgeCache(forUrl: Url? = null): Unit =
         lock.withLock {
-            if (forUrl == null) {
-                // Purge all
-                cacheSystem.purge()
-                metadataCache.clear()
-            } else {
-                val urlToPath = urlToPath(forUrl)
-                val urlCacheDir = cacheDir.resolve(urlToPath)
-                cacheSystem.purge(urlCacheDir)
-                metadataCache.remove(urlToPath)
+            withContext(dispatcher) {
+                if (forUrl == null) {
+                    // Purge all
+                    cacheSystem.purge()
+                    metadataCache.clear()
+                } else {
+                    val urlToPath = urlToPath(forUrl)
+                    val urlCacheDir = cacheDir.resolve(urlToPath)
+                    cacheSystem.purge(urlCacheDir)
+                    metadataCache.remove(urlToPath)
+                }
             }
         }
 
@@ -119,22 +123,24 @@ public class KtorFileCaching(
         data: CachedResponseData,
     ): Unit =
         lock.withLock {
-            val urlToPath = urlToPath(url)
-            val urlCacheDir = cacheDir.resolve(urlToPath)
-            val varyKeyHash = hashVaryKeys(data.varyKeys)
-            LOGGER.debug(
-                """
+            withContext(dispatcher) {
+                val urlToPath = urlToPath(url)
+                val urlCacheDir = cacheDir.resolve(urlToPath)
+                val varyKeyHash = hashVaryKeys(data.varyKeys)
+                LOGGER.debug(
+                    """
                 STORE: 
                 url = $url
                 varyKeys = ${data.varyKeys}
                 """.trimIndent(),
-            )
-            // loadCacheOfPath(urlToPath, urlCacheDir)
-            cacheSystem.write(urlCacheDir, varyKeyHash, Json.encodeToString(SerializableCachedResponseData(data)))
-            metadataCache[urlToPath]?.run {
-                add(varyKeyHash)
-            } ?: run {
-                metadataCache[urlToPath] = mutableScatterSetOf(varyKeyHash)
+                )
+                loadCacheOfPath(urlToPath, urlCacheDir)
+                cacheSystem.write(urlCacheDir, varyKeyHash, Json.encodeToString(SerializableCachedResponseData(data)))
+                metadataCache[urlToPath]?.run {
+                    add(varyKeyHash)
+                } ?: run {
+                    metadataCache[urlToPath] = mutableScatterSetOf(varyKeyHash)
+                }
             }
         }
 
