@@ -97,23 +97,24 @@ public class KtorFileCaching(
                 """.trimIndent(),
             )
 
-            val result = mutableScatterSetOf<CachedResponseData>()
-            metadataCache[urlToPath]?.run {
-                val values = mutableScatterSetOf<String>()
-                cacheSystem.contentOf(urlCacheDir).forEach {
-                    values.add(it.name)
-                }
-                metadataCache[urlToPath] = values
-                forEach { varyKeyHash ->
-                    cacheSystem
-                        .read(urlCacheDir, varyKeyHash)
-                        ?.let {
-                            Json.decodeFromString<SerializableCachedResponseData>(it)
-                        }?.cachedResponseData
-                        ?.run {
-                            result.add(this)
+            if (metadataCache[urlToPath] == null) {
+                metadataCache[urlToPath] =
+                    mutableScatterSetOf<String>().apply {
+                        cacheSystem.contentOf(urlCacheDir).forEach {
+                            add(it.name)
                         }
-                }
+                    }
+            }
+            val result = mutableScatterSetOf<CachedResponseData>()
+            metadataCache[urlToPath]?.forEach { varyKeyHash ->
+                cacheSystem
+                    .read(urlCacheDir, varyKeyHash)
+                    ?.let {
+                        Json.decodeFromString<SerializableCachedResponseData>(it)
+                    }?.cachedResponseData
+                    ?.let {
+                        result.add(it)
+                    }
             }
             return result.asSet()
         }
