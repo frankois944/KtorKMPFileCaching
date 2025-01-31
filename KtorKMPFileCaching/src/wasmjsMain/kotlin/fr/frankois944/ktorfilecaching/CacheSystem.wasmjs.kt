@@ -2,6 +2,8 @@
 
 package fr.frankois944.ktorfilecaching
 
+import androidx.collection.ScatterSet
+import androidx.collection.mutableScatterSetOf
 import kotlinx.browser.window
 import okio.FileSystem
 import okio.Path
@@ -47,11 +49,15 @@ internal actual class CacheSystem actual constructor(
         }
     }
 
-    internal actual fun contentOf(key: Path): Set<Path> =
-        getIndex()
-            .map { index ->
-                index.split("_")[2].toPath()
-            }.toSet()
+    internal actual fun contentOf(key: Path): ScatterSet<Path> {
+        val result = mutableScatterSetOf<Path>()
+        getIndex().forEach {
+            if (it.startsWith(buildKeyPath(key, null))) {
+                result.add(it.split("_")[2].toPath())
+            }
+        }
+        return result
+    }
 
     internal actual fun read(
         key: Path,
@@ -63,13 +69,12 @@ internal actual class CacheSystem actual constructor(
 
     internal actual fun purge(key: Path?) {
         key?.let {
-            getIndex()
-                .filter { item ->
-                    item.startsWith(buildKeyPath(key, null))
-                }.forEach { index ->
+            getIndex().forEach { index ->
+                if (index.startsWith(buildKeyPath(key, null))) {
                     window.localStorage.removeItem(index)
                     removeFromIndex(index)
                 }
+            }
         } ?: run {
             getIndex().forEach {
                 window.localStorage.removeItem(it)

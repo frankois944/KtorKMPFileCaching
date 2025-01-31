@@ -73,6 +73,7 @@ kotlin {
             implementation(libs.kotlin.serialization)
             implementation(libs.kotlin.coroutines)
             implementation(libs.ktor.client.core)
+            implementation(libs.collection)
             api(libs.okio)
         }
         val jsNodeMain by getting {

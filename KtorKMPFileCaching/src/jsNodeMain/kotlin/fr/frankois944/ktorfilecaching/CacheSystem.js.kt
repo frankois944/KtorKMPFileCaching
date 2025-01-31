@@ -2,8 +2,13 @@
 
 package fr.frankois944.ktorfilecaching
 
+import androidx.collection.ScatterSet
+import androidx.collection.scatterSetOf
 import okio.FileSystem
+import okio.NodeJsFileSystem
 import okio.Path
+
+internal actual fun filesystem(): FileSystem = NodeJsFileSystem
 
 internal actual class CacheSystem actual constructor(
     private val fileSystem: FileSystem,
@@ -41,7 +46,10 @@ internal actual class CacheSystem actual constructor(
         }
     }
 
-    internal actual fun contentOf(key: Path): Set<Path> = fileSystem.list(key).toSet()
+    internal actual fun contentOf(key: Path): ScatterSet<Path> =
+        fileSystem.list(key).run {
+            scatterSetOf(*this.toTypedArray())
+        }
 
     internal actual fun read(
         key: Path,

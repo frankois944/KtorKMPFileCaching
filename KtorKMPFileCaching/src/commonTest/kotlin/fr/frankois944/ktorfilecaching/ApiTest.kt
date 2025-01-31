@@ -135,6 +135,7 @@ class ApiTest {
                 )
 
             val firstResponse = client.getIp()
+            delay(500)
             val cachedResponse = client.getIp()
             assertEquals(firstResponse.bodyAsText(), cachedResponse.bodyAsText())
             assertEquals(firstResponse.headers, cachedResponse.headers)
@@ -208,6 +209,7 @@ class ApiTest {
                     )
 
                 val firstResponse = client.getIpWithParam(body.first)
+                delay(500)
                 val cachedResponse = client.getIpWithParam(body.first)
                 assertEquals(firstResponse.bodyAsText(), cachedResponse.bodyAsText())
                 assertEquals(firstResponse.headers, cachedResponse.headers)
@@ -246,7 +248,6 @@ class ApiTest {
                     )
                 }
 
-            delay(500)
             val client =
                 ApiClient(
                     HttpClient(mockEngine) {
@@ -255,6 +256,7 @@ class ApiTest {
                 )
 
             val firstResponse = client.getIp()
+            delay(500)
             val cachedResponse = client.getIp()
             assertNotEquals(firstResponse.bodyAsText(), cachedResponse.bodyAsText())
             assertNotEquals(firstResponse.headers, cachedResponse.headers)
