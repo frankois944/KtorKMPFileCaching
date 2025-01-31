@@ -126,7 +126,7 @@ mavenPublishing {
     coordinates(
         groupId = "io.github.frankois944",
         artifactId = "ktorfilecaching",
-        version = "0.4.3",
+        version = "0.5.0",
     )
 
     // Configure POM metadata for the published artifact
@@ -135,7 +135,7 @@ mavenPublishing {
         description.set(
             "This library can be used by a lot of targets for enabling the file caching of Ktor caching (https://ktor.io/docs/client-caching.html) ",
         )
-        inceptionYear.set("2024")
+        inceptionYear.set("2025")
         url.set("https://github.com/frankois944/KtorKMPFileCaching")
 
         licenses {
