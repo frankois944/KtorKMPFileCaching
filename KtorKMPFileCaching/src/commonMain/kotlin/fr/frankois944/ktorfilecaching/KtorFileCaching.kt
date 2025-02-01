@@ -24,7 +24,7 @@ import kotlin.String
  * @param storedCacheDirectory the directories where the cache is, by default : `KTorFileCaching`
  * @param rootStoredCachePath the root directory, by default : `SYSTEM_TEMPORARY_DIRECTORY` of okio
  * @param dispatcher to use for writing file operations
- * @param fileSystem the okio filesystem instance
+ * @param fileSystem the okio filesystem instance, not used by KotlinJS browser and Kotlin Wasm
  */
 public class KtorFileCaching(
     storedCacheDirectory: Path = "KTorFileCaching".toPath(),
