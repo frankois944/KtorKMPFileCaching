@@ -1,16 +1,7 @@
 # Ktor KMP File Caching
 [![Tests](https://github.com/frankois944/KtorKMPFileCaching/actions/workflows/tests.yml/badge.svg)](https://github.com/frankois944/KtorKMPFileCaching/actions/workflows/tests.yml)
 
-This project add a file caching for [Ktor client caching](https://ktor.io/docs/client-caching.html).
-
-Currently, there is a Memory caching, it's the
-default [HttpCache](https://ktor.io/docs/client-caching.html#memory_cache) behavior of the plugin and
-a [file caching only for Java Target](https://ktor.io/docs/client-caching.html#persistent_cache).
-
-The main goal is to make available file caching to many KMP target as possible.
-
-It's based on [OKIO dependency](https://square.github.io/okio/multiplatform/)
-and [kotlinx serialization](https://github.com/Kotlin/kotlinx.serialization).
+This project is a [Ktor client caching](https://ktor.io/docs/client-caching.html), which is literally a port of [FileStorage](https://api.ktor.io/ktor-client/ktor-client-core/io.ktor.client.plugins.cache.storage/-file-storage.html) for KMP based on [OKIO](https://square.github.io/okio/multiplatform/) and [kotlinx serialization](https://github.com/Kotlin/kotlinx.serialization).
 
 ## Example
 
@@ -28,19 +19,19 @@ HttpClient {
 ### Kotlin JS for browser
 
 ```kotlin
-implementation("io.github.frankois944:ktorfilecaching-jsbrowser:0.4.2")
+implementation("io.github.frankois944:ktorfilecaching-jsbrowser:0.6.0")
 ```
 
 ### Kotlin JS for NodeJS
 
 ```kotlin
-implementation("io.github.frankois944:ktorfilecaching-jsnode:0.4.2")
+implementation("io.github.frankois944:ktorfilecaching-jsnode:0.6.0")
 ```
 
 ### other platform
 
 ```kotlin
-implementation("io.github.frankois944:ktorfilecaching:0.4.2")
+implementation("io.github.frankois944:ktorfilecaching:0.6.0")
 ```
 
 ## Platforms
