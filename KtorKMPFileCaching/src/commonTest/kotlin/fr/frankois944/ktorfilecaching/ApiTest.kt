@@ -34,14 +34,20 @@ import kotlin.test.assertEquals
 import kotlin.test.assertNotEquals
 
 class ApiTest {
-    private val caching = KtorFileCaching(storedCacheDirectory = "testCache".toPath(), fileSystem = FakeFileSystem())
+    private val filesystem = FakeFileSystem()
+
+    private val caching =
+        KtorFileCaching(
+            storedCacheDirectory = "testCache".toPath(),
+            fileSystem = filesystem,
+        )
 
     @ExperimentalCoroutinesApi
     @BeforeTest
     fun beforeTest() =
         runTest {
             Dispatchers.setMain(StandardTestDispatcher())
-            caching.purgeCache()
+            filesystem.deleteRecursively("testCache".toPath())
         }
 
     @ExperimentalCoroutinesApi

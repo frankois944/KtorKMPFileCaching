@@ -68,28 +68,58 @@ kotlin {
     linuxX64()
     linuxArm64()
 
+    applyDefaultHierarchyTemplate()
+
     sourceSets {
         commonMain.dependencies {
-            implementation(libs.kotlin.serialization)
-            implementation(libs.kotlin.coroutines)
             implementation(libs.ktor.client.core)
-            implementation(libs.collection)
             api(libs.okio)
+        }
+
+        // With okio Filesystem
+
+        val okioFileSystemMain by creating {
+            dependsOn(commonMain.get())
+            dependencies {
+                implementation(libs.kotlin.coroutines)
+                implementation(libs.kotlin.serialization.cbor)
+            }
         }
         val jsNodeMain by getting {
             dependencies {
                 api(libs.okio.nodefilesystem)
             }
         }
+
+        nativeMain.get().dependsOn(okioFileSystemMain)
+        jvmMain.get().dependsOn(okioFileSystemMain)
+        androidMain.get().dependsOn(okioFileSystemMain)
+        jsNodeMain.dependsOn(okioFileSystemMain)
+
+        // Without okio Filesystem
+
+        val localStorageSystemMain by creating {
+            dependsOn(commonMain.get())
+            dependencies {
+                implementation(libs.kotlin.coroutines)
+                implementation(libs.kotlin.serialization.cbor)
+            }
+        }
+
         val jsBrowserMain by getting {
             dependencies {
                 api(libs.okio.fakefilesystem)
             }
         }
+
         wasmJsMain.dependencies {
             implementation(libs.kotlinx.browser)
             api(libs.okio.fakefilesystem)
         }
+
+        wasmJsMain.get().dependsOn(localStorageSystemMain)
+        jsBrowserMain.dependsOn(localStorageSystemMain)
+
         commonTest.dependencies {
             implementation(libs.kotlin.test)
             implementation(libs.okio.fakefilesystem)
@@ -97,14 +127,7 @@ kotlin {
             implementation(libs.kotlin.coroutines.test)
             implementation(libs.ktor.client.logging)
             implementation(libs.kotlinx.datetime)
-        }
-        androidNativeTest.dependencies {
-        }
-        jvmTest.dependencies {
-        }
-        val jsNodeTest by getting {
-        }
-        val jsBrowserTest by getting {
+            implementation(libs.kotlin.serialization)
         }
     }
 }
