@@ -22,6 +22,7 @@ import okio.blackholeSink
 import okio.buffer
 import okio.use
 
+@Suppress("ktlint:standard:function-naming")
 internal actual fun InternalFileCacheStorage(
     storedCacheDirectory: Path,
     directoryPath: Path,
