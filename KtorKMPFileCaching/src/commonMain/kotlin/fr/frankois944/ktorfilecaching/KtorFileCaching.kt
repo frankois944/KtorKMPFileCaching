@@ -25,7 +25,8 @@ internal expect fun InternalFileCacheStorage(
  * Creates a multiplatform file-based cache storage.
  *
  * On Browser and Wasm Kotlin apps, the `LocalStorage` of the browser
- * is used for storing cached content instead of okio
+ * is used for storing cached content instead of okio,
+ * a prefix is added `fr.frankois944.ktorfilecaching_key` on the stored keys.
  *
  * @param storedCacheDirectory directory to the stored cache (unused of browser).
  * @param directoryPath base path to store cache data (unused of browser), by default `SYSTEM_TEMPORARY_DIRECTORY` of okio.
