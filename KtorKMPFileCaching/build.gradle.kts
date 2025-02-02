@@ -102,15 +102,13 @@ kotlin {
             dependsOn(commonMain.get())
             dependencies {
                 implementation(libs.kotlin.coroutines)
-                implementation(libs.kotlin.serialization)
-                implementation(libs.collection)
+                implementation(libs.kotlin.serialization.cbor)
             }
         }
 
         val jsBrowserMain by getting {
             dependencies {
                 api(libs.okio.fakefilesystem)
-                implementation(libs.kotlin.serialization)
             }
         }
 

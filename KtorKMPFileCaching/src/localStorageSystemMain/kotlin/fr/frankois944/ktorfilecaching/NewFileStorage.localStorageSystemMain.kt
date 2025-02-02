@@ -10,7 +10,9 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.ExperimentalSerializationApi
-import kotlinx.serialization.json.Json
+import kotlinx.serialization.cbor.Cbor
+import kotlinx.serialization.decodeFromHexString
+import kotlinx.serialization.encodeToHexString
 import okio.ByteString.Companion.encodeUtf8
 import okio.FileSystem
 import okio.HashingSink
@@ -70,7 +72,7 @@ internal class FileCacheStorage(
         caches: List<CachedResponseData>,
     ) = withContext(dispatcher) {
         lock.withLock {
-            val serializedData = Json.encodeToString(caches.map { SerializableCachedResponseData(it) })
+            val serializedData = Cbor.encodeToHexString(caches.map { SerializableCachedResponseData(it) })
             Window.setItem("${prefix}_$urlHex", serializedData)
         }
     }
@@ -81,7 +83,7 @@ internal class FileCacheStorage(
                 val item = Window.getItem("${prefix}_$urlHex")
                 if (item == null) return@withContext emptyList()
                 return@withContext try {
-                    Json.decodeFromString<List<SerializableCachedResponseData>>(item).map { it.cachedResponseData }
+                    Cbor.decodeFromHexString<List<SerializableCachedResponseData>>(item).map { it.cachedResponseData }
                 } catch (e: Exception) {
                     emptyList()
                 }
