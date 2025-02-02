@@ -5,7 +5,9 @@ package fr.frankois944.ktorfilecaching
 import io.ktor.client.plugins.cache.storage.CacheStorage
 import io.ktor.client.plugins.cache.storage.CachedResponseData
 import io.ktor.http.Url
+import io.ktor.util.collections.ConcurrentMap
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
@@ -37,7 +39,7 @@ internal class FileCacheStorage(
     val dispatcher: CoroutineDispatcher,
     val fileSystem: FileSystem = filesystem(),
 ) : CacheStorage {
-    private val lock = Mutex() // Coroutine-friendly lock for thread safety
+    private val mutexes = ConcurrentMap<String, Mutex>()
 
     override suspend fun store(
         url: Url,
@@ -70,23 +72,24 @@ internal class FileCacheStorage(
     private suspend fun writeCache(
         urlHex: String,
         caches: List<CachedResponseData>,
-    ) = withContext(dispatcher) {
-        lock.withLock {
+    ) = coroutineScope {
+        val mutex = mutexes.computeIfAbsent(urlHex) { Mutex() }
+        mutex.withLock {
             val serializedData = Cbor.encodeToHexString(caches.map { SerializableCachedResponseData(it) })
             Window.setItem("${prefix}_$urlHex", serializedData)
         }
     }
 
-    private suspend fun readCache(urlHex: String): List<CachedResponseData> =
-        withContext(dispatcher) {
-            lock.withLock {
-                val item = Window.getItem("${prefix}_$urlHex")
-                if (item == null) return@withContext emptyList()
-                return@withContext try {
-                    Cbor.decodeFromHexString<List<SerializableCachedResponseData>>(item).map { it.cachedResponseData }
-                } catch (e: Exception) {
-                    emptyList()
-                }
+    private suspend fun readCache(urlHex: String): List<CachedResponseData> {
+        val mutex = mutexes.computeIfAbsent(urlHex) { Mutex() }
+        return mutex.withLock {
+            val item = Window.getItem("${prefix}_$urlHex")
+            if (item == null) return@withLock emptyList()
+            try {
+                Cbor.decodeFromHexString<List<SerializableCachedResponseData>>(item).map { it.cachedResponseData }
+            } catch (e: Exception) {
+                emptyList()
             }
         }
+    }
 }

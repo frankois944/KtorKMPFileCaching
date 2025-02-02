@@ -5,7 +5,9 @@ package fr.frankois944.ktorfilecaching
 import io.ktor.client.plugins.cache.storage.CacheStorage
 import io.ktor.client.plugins.cache.storage.CachedResponseData
 import io.ktor.http.Url
+import io.ktor.util.collections.ConcurrentMap
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
@@ -36,7 +38,7 @@ internal class FileCacheStorage(
     val dispatcher: CoroutineDispatcher,
     val fileSystem: FileSystem = filesystem(),
 ) : CacheStorage {
-    private val lock = Mutex() // Coroutine-friendly lock for thread safety
+    private val mutexes = ConcurrentMap<String, Mutex>()
     private val baseDir = "$directoryPath${Path.DIRECTORY_SEPARATOR}$storedCacheDirectory"
 
     init {
@@ -74,25 +76,26 @@ internal class FileCacheStorage(
     private suspend fun writeCache(
         urlHex: String,
         caches: List<CachedResponseData>,
-    ) = withContext(dispatcher) {
-        lock.withLock {
+    ) = coroutineScope {
+        val mutex = mutexes.computeIfAbsent(urlHex) { Mutex() }
+        mutex.withLock {
             val filePath = "$baseDir${Path.DIRECTORY_SEPARATOR}$urlHex".toPath()
             val serializedData = Cbor.encodeToByteArray(caches.map { SerializableCachedResponseData(it) })
             fileSystem.write(filePath) { write(serializedData) }
         }
     }
 
-    private suspend fun readCache(urlHex: String): List<CachedResponseData> =
-        withContext(dispatcher) {
-            lock.withLock {
-                val filePath = "$baseDir${Path.DIRECTORY_SEPARATOR}$urlHex".toPath()
-                if (!fileSystem.exists(filePath)) return@withContext emptyList()
-                return@withContext try {
-                    val bytes = fileSystem.read(filePath) { readByteArray() }
-                    Cbor.decodeFromByteArray<List<SerializableCachedResponseData>>(bytes).map { it.cachedResponseData }
-                } catch (e: Exception) {
-                    emptyList()
-                }
+    private suspend fun readCache(urlHex: String): List<CachedResponseData> {
+        val mutex = mutexes.computeIfAbsent(urlHex) { Mutex() }
+        return mutex.withLock {
+            val filePath = "$baseDir${Path.DIRECTORY_SEPARATOR}$urlHex".toPath()
+            if (!fileSystem.exists(filePath)) return emptyList()
+            try {
+                val bytes = fileSystem.read(filePath) { readByteArray() }
+                Cbor.decodeFromByteArray<List<SerializableCachedResponseData>>(bytes).map { it.cachedResponseData }
+            } catch (e: Exception) {
+                emptyList()
             }
         }
+    }
 }
