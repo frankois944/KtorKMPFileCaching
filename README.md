@@ -1,5 +1,7 @@
 # Ktor KMP File Caching
 [![Tests](https://github.com/frankois944/KtorKMPFileCaching/actions/workflows/tests.yml/badge.svg)](https://github.com/frankois944/KtorKMPFileCaching/actions/workflows/tests.yml)
+[![Maven Central Version](https://img.shields.io/maven-central/v/io.github.frankois944/ktorfilecaching)](https://central.sonatype.com/artifact/io.github.frankois944/ktorfilecaching)
+
 
 This project is a [Ktor client caching](https://ktor.io/docs/client-caching.html), which is literally a port of [FileStorage](https://api.ktor.io/ktor-client/ktor-client-core/io.ktor.client.plugins.cache.storage/-file-storage.html) but for KMP based on [OKIO](https://square.github.io/okio/multiplatform/) and [kotlinx serialization](https://github.com/Kotlin/kotlinx.serialization).
 
