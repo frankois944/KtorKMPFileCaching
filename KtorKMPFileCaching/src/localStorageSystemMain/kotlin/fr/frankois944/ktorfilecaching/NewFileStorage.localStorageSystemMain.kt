@@ -10,23 +10,23 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.ExperimentalSerializationApi
-import kotlinx.serialization.cbor.Cbor
-import kotlinx.serialization.decodeFromByteArray
-import kotlinx.serialization.encodeToByteArray
+import kotlinx.serialization.json.Json
 import okio.ByteString.Companion.encodeUtf8
 import okio.FileSystem
 import okio.HashingSink
 import okio.Path
-import okio.Path.Companion.toPath
 import okio.blackholeSink
 import okio.buffer
 import okio.use
 
+internal val prefix = "fr.frankois944.ktorfilecaching_key"
+
+@Suppress("ktlint:standard:function-naming")
 internal actual fun InternalFileCacheStorage(
     storedCacheDirectory: Path,
     directoryPath: Path,
     dispatcher: CoroutineDispatcher,
-    fileSystem: FileSystem
+    fileSystem: FileSystem,
 ): CacheStorage = FileCacheStorage(storedCacheDirectory, directoryPath, dispatcher, fileSystem)
 
 internal class FileCacheStorage(
@@ -36,23 +36,23 @@ internal class FileCacheStorage(
     val fileSystem: FileSystem = filesystem(),
 ) : CacheStorage {
     private val lock = Mutex() // Coroutine-friendly lock for thread safety
-    private val baseDir = "$directoryPath${Path.DIRECTORY_SEPARATOR}$storedCacheDirectory"
 
-    init {
-        fileSystem.createDirectory(baseDir.toPath())
-    }
+    override suspend fun store(
+        url: Url,
+        data: CachedResponseData,
+    ): Unit =
+        withContext(dispatcher) {
+            val urlHex = key(url)
+            val caches = readCache(urlHex).filterNot { it.varyKeys == data.varyKeys } + data
+            writeCache(urlHex, caches)
+        }
 
-    override suspend fun store(url: Url, data: CachedResponseData): Unit = withContext(dispatcher) {
-        val urlHex = key(url)
-        val caches = readCache(urlHex).filterNot { it.varyKeys == data.varyKeys } + data
-        writeCache(urlHex, caches)
-    }
+    override suspend fun findAll(url: Url): Set<CachedResponseData> = readCache(key(url)).toSet()
 
-    override suspend fun findAll(url: Url): Set<CachedResponseData> {
-        return readCache(key(url)).toSet()
-    }
-
-    override suspend fun find(url: Url, varyKeys: Map<String, String>): CachedResponseData? {
+    override suspend fun find(
+        url: Url,
+        varyKeys: Map<String, String>,
+    ): CachedResponseData? {
         val data = readCache(key(url))
         return data.find { varyKeys.all { (key, value) -> it.varyKeys[key] == value } }
     }
@@ -65,24 +65,26 @@ internal class FileCacheStorage(
         return hashingSink.hash.hex()
     }
 
-    private suspend fun writeCache(urlHex: String, caches: List<CachedResponseData>) = withContext(dispatcher) {
+    private suspend fun writeCache(
+        urlHex: String,
+        caches: List<CachedResponseData>,
+    ) = withContext(dispatcher) {
         lock.withLock {
-            val filePath = "$baseDir${Path.DIRECTORY_SEPARATOR}$urlHex".toPath()
-            val serializedData = Cbor.encodeToByteArray(caches.map { SerializableCachedResponseData(it) })
-            fileSystem.write(filePath) { write(serializedData) }
+            val serializedData = Json.encodeToString(caches.map { SerializableCachedResponseData(it) })
+            Window.setItem("${prefix}_$urlHex", serializedData)
         }
     }
 
-    private suspend fun readCache(urlHex: String): List<CachedResponseData> = withContext(dispatcher) {
-        lock.withLock {
-            val filePath = "$baseDir${Path.DIRECTORY_SEPARATOR}$urlHex".toPath()
-            if (!fileSystem.exists(filePath)) return@withContext emptyList()
-            return@withContext try {
-                val bytes = fileSystem.read(filePath) { readByteArray() }
-                Cbor.decodeFromByteArray<List<SerializableCachedResponseData>>(bytes).map { it.cachedResponseData }
-            } catch (e: Exception) {
-                emptyList()
+    private suspend fun readCache(urlHex: String): List<CachedResponseData> =
+        withContext(dispatcher) {
+            lock.withLock {
+                val item = Window.getItem("${prefix}_$urlHex")
+                if (item == null) return@withContext emptyList()
+                return@withContext try {
+                    Json.decodeFromString<List<SerializableCachedResponseData>>(item).map { it.cachedResponseData }
+                } catch (e: Exception) {
+                    emptyList()
+                }
             }
         }
-    }
 }

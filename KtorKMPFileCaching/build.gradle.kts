@@ -72,28 +72,45 @@ kotlin {
 
     sourceSets {
         commonMain.dependencies {
-            implementation(libs.kotlin.serialization)
-            implementation(libs.kotlin.serialization.cbor)
-            implementation(libs.kotlin.coroutines)
             implementation(libs.ktor.client.core)
-            implementation(libs.collection)
             api(libs.okio)
         }
-        val localStorageSystemMain by creating {
-            dependsOn(commonMain.get()) // This is the only dependency!
-        }
+
+        // With okio Filesystem
 
         val okioFileSystemMain by creating {
-            dependsOn(commonMain.get()) // This is the only dependency!
+            dependsOn(commonMain.get())
+            dependencies {
+                implementation(libs.kotlin.coroutines)
+                implementation(libs.kotlin.serialization.cbor)
+            }
         }
         val jsNodeMain by getting {
             dependencies {
                 api(libs.okio.nodefilesystem)
             }
         }
+
+        nativeMain.get().dependsOn(okioFileSystemMain)
+        jvmMain.get().dependsOn(okioFileSystemMain)
+        androidMain.get().dependsOn(okioFileSystemMain)
+        jsNodeMain.dependsOn(okioFileSystemMain)
+
+        // Without okio Filesystem
+
+        val localStorageSystemMain by creating {
+            dependsOn(commonMain.get())
+            dependencies {
+                implementation(libs.kotlin.coroutines)
+                implementation(libs.kotlin.serialization)
+                implementation(libs.collection)
+            }
+        }
+
         val jsBrowserMain by getting {
             dependencies {
                 api(libs.okio.fakefilesystem)
+                implementation(libs.kotlin.serialization)
             }
         }
 
@@ -101,11 +118,6 @@ kotlin {
             implementation(libs.kotlinx.browser)
             api(libs.okio.fakefilesystem)
         }
-
-        nativeMain.get().dependsOn(okioFileSystemMain)
-        jvmMain.get().dependsOn(okioFileSystemMain)
-        androidMain.get().dependsOn(okioFileSystemMain)
-        jsNodeMain.dependsOn(okioFileSystemMain)
 
         wasmJsMain.get().dependsOn(localStorageSystemMain)
         jsBrowserMain.dependsOn(localStorageSystemMain)
@@ -119,7 +131,6 @@ kotlin {
             implementation(libs.kotlinx.datetime)
             implementation(libs.kotlin.serialization)
         }
-
     }
 }
 

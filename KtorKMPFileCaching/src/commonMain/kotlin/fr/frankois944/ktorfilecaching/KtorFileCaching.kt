@@ -12,21 +12,30 @@ import okio.Path.Companion.toPath
 
 internal expect fun filesystem(): FileSystem
 
+@Suppress("ktlint:standard:function-naming")
 internal expect fun InternalFileCacheStorage(
     storedCacheDirectory: Path,
     directoryPath: Path,
     dispatcher: CoroutineDispatcher,
-    fileSystem: FileSystem
-) : CacheStorage
+    fileSystem: FileSystem,
+): CacheStorage
 
+@Suppress("ktlint:standard:function-naming")
 /**
  * Creates a multiplatform file-based cache storage.
- * @param directoryPath path to store cache data.
+ *
+ * On Browser and Wasm Kotlin apps, the `LocalStorage` of the browser
+ * is used for storing cached content instead of okio
+ *
+ * @param storedCacheDirectory directory to the stored cache (unused of browser).
+ * @param directoryPath base path to store cache data (unused of browser), by default `SYSTEM_TEMPORARY_DIRECTORY` of okio.
  * @param dispatcher dispatcher for file operations.
+ * @param fileSystem an okio filesystem
+ *
  */
-public fun NewFileStorage(
+public fun KtorFileCaching(
     storedCacheDirectory: Path = "KTorFileCaching".toPath(),
     directoryPath: Path = FileSystem.SYSTEM_TEMPORARY_DIRECTORY,
     dispatcher: CoroutineDispatcher = Dispatchers.Default,
-    fileSystem: FileSystem = filesystem()
+    fileSystem: FileSystem = filesystem(),
 ): CacheStorage = InternalFileCacheStorage(storedCacheDirectory, directoryPath, dispatcher, fileSystem)

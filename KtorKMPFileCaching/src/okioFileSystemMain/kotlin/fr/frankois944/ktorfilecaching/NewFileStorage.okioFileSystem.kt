@@ -26,7 +26,7 @@ internal actual fun InternalFileCacheStorage(
     storedCacheDirectory: Path,
     directoryPath: Path,
     dispatcher: CoroutineDispatcher,
-    fileSystem: FileSystem
+    fileSystem: FileSystem,
 ): CacheStorage = FileCacheStorage(storedCacheDirectory, directoryPath, dispatcher, fileSystem)
 
 internal class FileCacheStorage(
@@ -39,20 +39,25 @@ internal class FileCacheStorage(
     private val baseDir = "$directoryPath${Path.DIRECTORY_SEPARATOR}$storedCacheDirectory"
 
     init {
-        fileSystem.createDirectory(baseDir.toPath())
+        fileSystem.createDirectories(baseDir.toPath())
     }
 
-    override suspend fun store(url: Url, data: CachedResponseData): Unit = withContext(dispatcher) {
-        val urlHex = key(url)
-        val caches = readCache(urlHex).filterNot { it.varyKeys == data.varyKeys } + data
-        writeCache(urlHex, caches)
-    }
+    override suspend fun store(
+        url: Url,
+        data: CachedResponseData,
+    ): Unit =
+        withContext(dispatcher) {
+            val urlHex = key(url)
+            val caches = readCache(urlHex).filterNot { it.varyKeys == data.varyKeys } + data
+            writeCache(urlHex, caches)
+        }
 
-    override suspend fun findAll(url: Url): Set<CachedResponseData> {
-        return readCache(key(url)).toSet()
-    }
+    override suspend fun findAll(url: Url): Set<CachedResponseData> = readCache(key(url)).toSet()
 
-    override suspend fun find(url: Url, varyKeys: Map<String, String>): CachedResponseData? {
+    override suspend fun find(
+        url: Url,
+        varyKeys: Map<String, String>,
+    ): CachedResponseData? {
         val data = readCache(key(url))
         return data.find { varyKeys.all { (key, value) -> it.varyKeys[key] == value } }
     }
@@ -65,7 +70,10 @@ internal class FileCacheStorage(
         return hashingSink.hash.hex()
     }
 
-    private suspend fun writeCache(urlHex: String, caches: List<CachedResponseData>) = withContext(dispatcher) {
+    private suspend fun writeCache(
+        urlHex: String,
+        caches: List<CachedResponseData>,
+    ) = withContext(dispatcher) {
         lock.withLock {
             val filePath = "$baseDir${Path.DIRECTORY_SEPARATOR}$urlHex".toPath()
             val serializedData = Cbor.encodeToByteArray(caches.map { SerializableCachedResponseData(it) })
@@ -73,16 +81,17 @@ internal class FileCacheStorage(
         }
     }
 
-    private suspend fun readCache(urlHex: String): List<CachedResponseData> = withContext(dispatcher) {
-        lock.withLock {
-            val filePath = "$baseDir${Path.DIRECTORY_SEPARATOR}$urlHex".toPath()
-            if (!fileSystem.exists(filePath)) return@withContext emptyList()
-            return@withContext try {
-                val bytes = fileSystem.read(filePath) { readByteArray() }
-                Cbor.decodeFromByteArray<List<SerializableCachedResponseData>>(bytes).map { it.cachedResponseData }
-            } catch (e: Exception) {
-                emptyList()
+    private suspend fun readCache(urlHex: String): List<CachedResponseData> =
+        withContext(dispatcher) {
+            lock.withLock {
+                val filePath = "$baseDir${Path.DIRECTORY_SEPARATOR}$urlHex".toPath()
+                if (!fileSystem.exists(filePath)) return@withContext emptyList()
+                return@withContext try {
+                    val bytes = fileSystem.read(filePath) { readByteArray() }
+                    Cbor.decodeFromByteArray<List<SerializableCachedResponseData>>(bytes).map { it.cachedResponseData }
+                } catch (e: Exception) {
+                    emptyList()
+                }
             }
         }
-    }
 }
