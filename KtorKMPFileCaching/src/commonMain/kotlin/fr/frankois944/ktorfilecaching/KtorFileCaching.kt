@@ -39,4 +39,7 @@ public fun KtorFileCaching(
     directoryPath: Path = FileSystem.SYSTEM_TEMPORARY_DIRECTORY,
     dispatcher: CoroutineDispatcher = Dispatchers.Default,
     fileSystem: FileSystem = filesystem(),
-): CacheStorage = InternalFileCacheStorage(storedCacheDirectory, directoryPath, dispatcher, fileSystem)
+): CacheStorage =
+    CachingCacheStorage(
+        InternalFileCacheStorage(storedCacheDirectory, directoryPath, dispatcher, fileSystem),
+    )
