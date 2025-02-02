@@ -4,7 +4,11 @@ package fr.frankois944.ktorfilecaching
 
 import androidx.collection.ScatterSet
 import androidx.collection.mutableScatterSetOf
+import io.ktor.client.plugins.cache.storage.CacheStorage
+import io.ktor.client.plugins.cache.storage.CachedResponseData
+import io.ktor.http.Url
 import kotlinx.browser.window
+import kotlinx.coroutines.CoroutineDispatcher
 import okio.FileSystem
 import okio.Path
 import okio.Path.Companion.toPath
@@ -12,7 +16,7 @@ import okio.fakefilesystem.FakeFileSystem
 
 internal actual fun filesystem(): FileSystem = FakeFileSystem()
 
-internal actual class CacheSystem actual constructor(
+/*internal actual class CacheSystem actual constructor(
     fileSystem: FileSystem,
     cacheDir: Path,
 ) {
@@ -82,4 +86,4 @@ internal actual class CacheSystem actual constructor(
             purgeIndex()
         }
     }
-}
+}*/

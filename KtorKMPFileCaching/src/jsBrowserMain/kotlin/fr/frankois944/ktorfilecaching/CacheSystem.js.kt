@@ -12,7 +12,7 @@ import okio.fakefilesystem.FakeFileSystem
 
 internal actual fun filesystem(): FileSystem = FakeFileSystem()
 
-internal actual class CacheSystem actual constructor(
+/*internal actual class CacheSystem actual constructor(
     fileSystem: FileSystem,
     cacheDir: Path,
 ) {
@@ -82,4 +82,4 @@ internal actual class CacheSystem actual constructor(
             purgeIndex()
         }
     }
-}
+}*/

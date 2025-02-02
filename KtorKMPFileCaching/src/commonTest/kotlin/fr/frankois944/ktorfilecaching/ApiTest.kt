@@ -25,8 +25,6 @@ import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import kotlinx.datetime.Clock
 import kotlinx.serialization.json.Json
-import okio.Path.Companion.toPath
-import okio.fakefilesystem.FakeFileSystem
 import kotlin.test.AfterTest
 import kotlin.test.BeforeTest
 import kotlin.test.Test
@@ -34,14 +32,14 @@ import kotlin.test.assertEquals
 import kotlin.test.assertNotEquals
 
 class ApiTest {
-    private val caching = KtorFileCaching(storedCacheDirectory = "testCache".toPath(), fileSystem = FakeFileSystem())
+    private val caching = NewFileStorage()
 
     @ExperimentalCoroutinesApi
     @BeforeTest
     fun beforeTest() =
         runTest {
             Dispatchers.setMain(StandardTestDispatcher())
-            caching.purgeCache()
+         //   caching.purgeCache()
         }
 
     @ExperimentalCoroutinesApi

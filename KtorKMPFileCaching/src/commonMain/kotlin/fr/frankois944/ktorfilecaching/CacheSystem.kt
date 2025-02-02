@@ -6,8 +6,7 @@ import androidx.collection.ScatterSet
 import okio.FileSystem
 import okio.Path
 
-internal expect fun filesystem(): FileSystem
-
+/*@OptionalExpectation
 internal expect class CacheSystem(
     fileSystem: FileSystem,
     cacheDir: Path,
@@ -31,4 +30,4 @@ internal expect class CacheSystem(
     ): String?
 
     internal fun purge(key: Path? = null)
-}
+}*/

@@ -68,13 +68,23 @@ kotlin {
     linuxX64()
     linuxArm64()
 
+    applyDefaultHierarchyTemplate()
+
     sourceSets {
         commonMain.dependencies {
             implementation(libs.kotlin.serialization)
+            implementation(libs.kotlin.serialization.cbor)
             implementation(libs.kotlin.coroutines)
             implementation(libs.ktor.client.core)
             implementation(libs.collection)
             api(libs.okio)
+        }
+        val localStorageSystemMain by creating {
+            dependsOn(commonMain.get()) // This is the only dependency!
+        }
+
+        val okioFileSystemMain by creating {
+            dependsOn(commonMain.get()) // This is the only dependency!
         }
         val jsNodeMain by getting {
             dependencies {
@@ -86,10 +96,20 @@ kotlin {
                 api(libs.okio.fakefilesystem)
             }
         }
+
         wasmJsMain.dependencies {
             implementation(libs.kotlinx.browser)
             api(libs.okio.fakefilesystem)
         }
+
+        nativeMain.get().dependsOn(okioFileSystemMain)
+        jvmMain.get().dependsOn(okioFileSystemMain)
+        androidMain.get().dependsOn(okioFileSystemMain)
+        jsNodeMain.dependsOn(okioFileSystemMain)
+
+        wasmJsMain.get().dependsOn(localStorageSystemMain)
+        jsBrowserMain.dependsOn(localStorageSystemMain)
+
         commonTest.dependencies {
             implementation(libs.kotlin.test)
             implementation(libs.okio.fakefilesystem)
@@ -97,15 +117,9 @@ kotlin {
             implementation(libs.kotlin.coroutines.test)
             implementation(libs.ktor.client.logging)
             implementation(libs.kotlinx.datetime)
+            implementation(libs.kotlin.serialization)
         }
-        androidNativeTest.dependencies {
-        }
-        jvmTest.dependencies {
-        }
-        val jsNodeTest by getting {
-        }
-        val jsBrowserTest by getting {
-        }
+
     }
 }
 
