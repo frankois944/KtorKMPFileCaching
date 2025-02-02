@@ -51,7 +51,7 @@ internal class FileCacheStorage(
             writeCache(urlHex, caches)
         }
 
-    override suspend fun findAll(url: Url): Set<CachedResponseData> = readCache(key(url)).toSet()
+    override suspend fun findAll(url: Url): Set<CachedResponseData> = readCache(key(url))
 
     override suspend fun find(
         url: Url,
@@ -80,15 +80,15 @@ internal class FileCacheStorage(
         }
     }
 
-    private suspend fun readCache(urlHex: String): List<CachedResponseData> {
+    private suspend fun readCache(urlHex: String): Set<CachedResponseData> {
         val mutex = mutexes.computeIfAbsent(urlHex) { Mutex() }
         return mutex.withLock {
             val item = Window.getItem("${prefix}_$urlHex")
-            if (item == null) return@withLock emptyList()
+            if (item == null) return@withLock emptySet()
             try {
-                Cbor.decodeFromHexString<List<SerializableCachedResponseData>>(item).map { it.cachedResponseData }
+                Cbor.decodeFromHexString<Set<SerializableCachedResponseData>>(item).map { it.cachedResponseData }.toSet()
             } catch (e: Exception) {
-                emptyList()
+                emptySet()
             }
         }
     }
