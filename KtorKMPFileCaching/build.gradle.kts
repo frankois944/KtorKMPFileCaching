@@ -149,7 +149,7 @@ mavenPublishing {
     coordinates(
         groupId = "io.github.frankois944",
         artifactId = "ktorfilecaching",
-        version = "0.6.0",
+        version = "0.6.1",
     )
 
     // Configure POM metadata for the published artifact
