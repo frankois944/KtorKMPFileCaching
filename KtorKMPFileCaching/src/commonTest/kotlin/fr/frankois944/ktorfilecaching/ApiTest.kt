@@ -32,6 +32,7 @@ import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotEquals
+import kotlin.test.assertTrue
 
 class ApiTest {
     private val filesystem = FakeFileSystem()
@@ -214,13 +215,57 @@ class ApiTest {
                         },
                     )
 
-                val firstResponse = client.getIpWithParam(body.first)
-                delay(500)
-                val cachedResponse = client.getIpWithParam(body.first)
-                assertEquals(firstResponse.bodyAsText(), cachedResponse.bodyAsText())
-                assertEquals(firstResponse.headers, cachedResponse.headers)
-                assertEquals(firstResponse.status, cachedResponse.status)
+                client.getIpWithParam(body.first)
             }
+            delay(500)
+            val logs = mutableListOf<String>()
+            bodies.shuffled().forEach { body ->
+                val mockEngine =
+                    MockEngine {
+                        respond(
+                            content = body.second,
+                            status = HttpStatusCode.OK,
+                            headers =
+                                headersOf(
+                                    Pair(
+                                        HttpHeaders.ContentType,
+                                        listOf("application/json"),
+                                    ),
+                                    Pair(
+                                        HttpHeaders.Date,
+                                        listOf(Clock.System.now().toString()),
+                                    ),
+                                    Pair(
+                                        HttpHeaders.CacheControl,
+                                        listOf("max-age=600"),
+                                    ),
+                                ),
+                        )
+                    }
+
+                val client =
+                    ApiClient(
+                        HttpClient(mockEngine) {
+                            install(HttpCache) {
+                                publicStorage(caching)
+                            }
+                            install(Logging) {
+                                logger =
+                                    object : Logger {
+                                        override fun log(message: String) {
+                                            logs.add(message)
+                                        }
+                                    }
+                                level = LogLevel.ALL
+                            }
+                        },
+                    )
+
+                val response = client.getIpWithParam(body.first)
+                assertTrue(response.bodyAsText().isNotEmpty(), "The cached request must have a response body")
+            }
+
+            assertTrue(logs.isEmpty(), "No log should be generated when getting cached data")
         }
 
     @Test
