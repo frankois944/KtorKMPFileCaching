@@ -98,7 +98,7 @@ kotlin {
 
         // Without okio Filesystem
 
-        val localStorageSystemMain by creating {
+        val browserStorageSystemMain by creating {
             dependsOn(commonMain.get())
             dependencies {
                 implementation(libs.kotlin.coroutines)
@@ -108,6 +108,7 @@ kotlin {
 
         val jsBrowserMain by getting {
             dependencies {
+                implementation(libs.indexeddb.core)
                 api(libs.okio.fakefilesystem)
             }
         }
@@ -117,8 +118,8 @@ kotlin {
             api(libs.okio.fakefilesystem)
         }
 
-        wasmJsMain.get().dependsOn(localStorageSystemMain)
-        jsBrowserMain.dependsOn(localStorageSystemMain)
+        wasmJsMain.get().dependsOn(browserStorageSystemMain)
+        jsBrowserMain.dependsOn(browserStorageSystemMain)
 
         commonTest.dependencies {
             implementation(libs.kotlin.test)

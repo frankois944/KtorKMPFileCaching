@@ -76,14 +76,14 @@ internal class FileCacheStorage(
         val mutex = mutexes.computeIfAbsent(urlHex) { Mutex() }
         mutex.withLock {
             val serializedData = Cbor.encodeToHexString(caches.map { SerializableCachedResponseData(it) })
-            Window.setItem("${prefix}_$urlHex", serializedData)
+            Database.setItem("${prefix}_$urlHex", serializedData)
         }
     }
 
     private suspend fun readCache(urlHex: String): Set<CachedResponseData> {
         val mutex = mutexes.computeIfAbsent(urlHex) { Mutex() }
         return mutex.withLock {
-            val item = Window.getItem("${prefix}_$urlHex")
+            val item = Database.getItem("${prefix}_$urlHex")
             if (item == null) return@withLock emptySet()
             try {
                 Cbor.decodeFromHexString<Set<SerializableCachedResponseData>>(item).map { it.cachedResponseData }.toSet()
