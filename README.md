@@ -6,7 +6,7 @@
 This project is a [Ktor client caching](https://ktor.io/docs/client-caching.html), which is (almost) literally a port of [FileStorage](https://api.ktor.io/ktor-client/ktor-client-core/io.ktor.client.plugins.cache.storage/-file-storage.html) but for KMP based on [OKIO](https://square.github.io/okio/multiplatform/) and [kotlinx serialization](https://github.com/Kotlin/kotlinx.serialization).
 
 > [!IMPORTANT]  
-> The plugin uses the LocalStorage for the browser and wasm, there is a size limitation (about 5mo in total) who need to be manually managed by yourself.
+> The plugin uses the LocalStorage for the **wasm** target, there is a size limitation (about 5mo in total) who need to be manually managed by yourself.
 
 ## Example
 
