@@ -4,6 +4,7 @@ package fr.frankois944.ktorfilecaching
 
 import io.ktor.client.plugins.cache.storage.CacheStorage
 import io.ktor.client.plugins.cache.storage.CachedResponseData
+import io.ktor.http.ContentDisposition.Companion.File
 import io.ktor.http.Url
 import io.ktor.util.collections.ConcurrentMap
 import kotlinx.coroutines.CoroutineDispatcher
@@ -57,6 +58,18 @@ internal class FileCacheStorage(
 
     override suspend fun findAll(url: Url): Set<CachedResponseData> = readCache(key(url))
 
+    override suspend fun remove(url: Url, varyKeys: Map<String, String>) {
+        val urlHex = key(url)
+        updateCache(urlHex) { caches ->
+            caches.filterNot { it.varyKeys == varyKeys }
+        }
+    }
+
+    override suspend fun removeAll(url: Url) {
+        val urlHex = key(url)
+        deleteCache(urlHex)
+    }
+
     override suspend fun find(
         url: Url,
         varyKeys: Map<String, String>,
@@ -95,6 +108,30 @@ internal class FileCacheStorage(
                 Cbor.decodeFromByteArray<Set<SerializableCachedResponseData>>(bytes).map { it.cachedResponseData }.toSet()
             } catch (e: Exception) {
                 emptySet()
+            }
+        }
+    }
+
+    private suspend inline fun updateCache(
+        urlHex: String,
+        transform: (Set<CachedResponseData>) -> List<CachedResponseData>
+    ) {
+        val mutex = mutexes.computeIfAbsent(urlHex) { Mutex() }
+        mutex.withLock {
+            val caches = readCacheUnsafe(urlHex)
+            writeCacheUnsafe(urlHex, transform(caches))
+        }
+    }
+
+    private suspend fun deleteCache(urlHex: String) {
+        val mutex = mutexes.computeIfAbsent(urlHex) { Mutex() }
+        mutex.withLock {
+            val filePath = "$baseDir${Path.DIRECTORY_SEPARATOR}$urlHex".toPath()
+            if (!fileSystem.exists(filePath)) return@withLock
+            try {
+                fileSystem.delete(filePath)
+            } catch (cause: Exception) {
+               // LOGGER.trace { "Exception during cache deletion in a file: ${cause.stackTraceToString()}" }
             }
         }
     }

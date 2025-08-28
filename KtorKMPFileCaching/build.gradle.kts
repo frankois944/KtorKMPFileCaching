@@ -43,7 +43,7 @@ kotlin {
     }
     @OptIn(ExperimentalWasmDsl::class)
     wasmJs {
-        moduleName = "ktorfilecaching"
+        outputModuleName = "ktorfilecaching"
         browser {
             testTask {
                 useKarma {
@@ -74,6 +74,7 @@ kotlin {
         commonMain.dependencies {
             implementation(libs.ktor.client.core)
             api(libs.okio)
+            api("org.jetbrains.kotlinx:kotlinx-io-core:0.7.0")
         }
 
         // With okio Filesystem
@@ -87,7 +88,8 @@ kotlin {
         }
         val jsNodeMain by getting {
             dependencies {
-                api(libs.okio.nodefilesystem)
+               // api("org.jetbrains.kotlinx:kotlinx-io-core:0.7.0")
+             //   api(libs.okio.nodefilesystem)
             }
         }
 
@@ -109,13 +111,15 @@ kotlin {
         val jsBrowserMain by getting {
             dependencies {
                 implementation(libs.indexeddb.core)
-                api(libs.okio.fakefilesystem)
+               // api("org.jetbrains.kotlinx:kotlinx-io-core:0.7.0")
+               // api(libs.okio.fakefilesystem)
             }
         }
 
         wasmJsMain.dependencies {
-            implementation(libs.kotlinx.browser)
-            api(libs.okio.fakefilesystem)
+           // implementation(libs.kotlinx.browser)
+           // api("org.jetbrains.kotlinx:kotlinx-io-core:0.7.0")
+         //   api(libs.okio.fakefilesystem)
         }
 
         wasmJsMain.get().dependsOn(browserStorageSystemMain)
@@ -123,6 +127,7 @@ kotlin {
 
         commonTest.dependencies {
             implementation(libs.kotlin.test)
+            //implementation(libs.okio.fakefilesystem)
             implementation(libs.okio.fakefilesystem)
             implementation(libs.ktor.client.mock)
             implementation(libs.kotlin.coroutines.test)

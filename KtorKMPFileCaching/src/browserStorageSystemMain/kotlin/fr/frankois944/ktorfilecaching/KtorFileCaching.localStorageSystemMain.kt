@@ -52,6 +52,13 @@ internal class FileCacheStorage(
         }
 
     override suspend fun findAll(url: Url): Set<CachedResponseData> = readCache(key(url))
+    override suspend fun remove(url: Url, varyKeys: Map<String, String>) {
+        TODO("Not yet implemented")
+    }
+
+    override suspend fun removeAll(url: Url) {
+        Database.removeItem("")
+    }
 
     override suspend fun find(
         url: Url,

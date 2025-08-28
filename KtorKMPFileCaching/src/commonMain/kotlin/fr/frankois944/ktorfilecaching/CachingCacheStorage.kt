@@ -38,4 +38,14 @@ internal class CachingCacheStorage(
         }
         return store.getValue(url)
     }
+
+    override suspend fun remove(url: Url, varyKeys: Map<String, String>) {
+        delegate.remove(url, varyKeys)
+        store[url] = delegate.findAll(url)
+    }
+
+    override suspend fun removeAll(url: Url) {
+        delegate.removeAll(url)
+        store.remove(url)
+    }
 }
