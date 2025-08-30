@@ -74,7 +74,6 @@ kotlin {
         commonMain.dependencies {
             implementation(libs.ktor.client.core)
             api(libs.okio)
-            // api("org.jetbrains.kotlinx:kotlinx-io-core:0.8.0")
         }
 
         // With okio Filesystem
@@ -116,7 +115,6 @@ kotlin {
 
         wasmJsMain.dependencies {
             implementation(libs.kotlinx.browser)
-            // api("org.jetbrains.kotlinx:kotlinx-io-core:0.7.0")
             api(libs.okio.fakefilesystem)
         }
 
@@ -125,7 +123,6 @@ kotlin {
 
         commonTest.dependencies {
             implementation(libs.kotlin.test)
-            // implementation(libs.okio.fakefilesystem)
             implementation(libs.okio.fakefilesystem)
             implementation(libs.ktor.client.mock)
             implementation(libs.kotlin.coroutines.test)
@@ -152,7 +149,7 @@ mavenPublishing {
     coordinates(
         groupId = "io.github.frankois944",
         artifactId = "ktorfilecaching",
-        version = "0.7.0",
+        version = "0.8.0",
     )
 
     // Configure POM metadata for the published artifact
