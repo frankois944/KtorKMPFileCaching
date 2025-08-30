@@ -36,11 +36,25 @@ import kotlin.test.assertEquals
 import kotlin.test.assertNotEquals
 import kotlin.test.assertTrue
 import kotlin.time.Clock
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.seconds
 import kotlin.time.ExperimentalTime
+import kotlin.time.Instant
+
+class FakeClock(
+    var currentTime: Instant,
+) : Clock {
+    override fun now(): Instant = currentTime
+
+    fun advanceBy(duration: Duration) {
+        currentTime += duration
+    }
+}
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class ApiTest {
     private val filesystem = FakeFileSystem()
+    private val clock = FakeClock(Clock.System.now())
 
     private val caching =
         KtorFileCaching(
@@ -82,7 +96,7 @@ class ApiTest {
                             Pair(
                                 HttpHeaders.Date,
                                 listOf(
-                                    Clock.System.now().toString(),
+                                    clock.now().toString(),
                                 ),
                             ),
                         ),
@@ -106,7 +120,7 @@ class ApiTest {
                         content =
                             ByteReadChannel(
                                 """
-                                {"ip":"127.0.0.1", "time" : ${Clock.System.now()}}
+                                {"ip":"127.0.0.1", "time" : ${clock.now()}}
                                 """.trimIndent(),
                             ),
                         status = HttpStatusCode.OK,
@@ -118,7 +132,7 @@ class ApiTest {
                                 ),
                                 Pair(
                                     HttpHeaders.Date,
-                                    listOf(Clock.System.now().toString()),
+                                    listOf(clock.now().toString()),
                                 ),
                                 Pair(
                                     HttpHeaders.CacheControl,
@@ -147,7 +161,7 @@ class ApiTest {
                 )
 
             val firstResponse = client.getIp()
-            delay(500)
+            clock.advanceBy(3.seconds)
             val cachedResponse = client.getIp()
             assertEquals(firstResponse.bodyAsText(), cachedResponse.bodyAsText())
             assertEquals(firstResponse.headers, cachedResponse.headers)
@@ -169,7 +183,7 @@ class ApiTest {
                                 "Request_param__${index++}",
                                 ByteReadChannel(
                                     """
-                                    {"ip":"127.0.0.1", "time" : ${Clock.System.now()}, "data" : ${Clock.System.now().epochSeconds}.${Clock.System.now().nanosecondsOfSecond}}
+                                    {"ip":"127.0.0.1", "time" : ${clock.now()}, "data" : ${clock.now().epochSeconds}.${clock.now().nanosecondsOfSecond}}
                                     """.trimIndent(),
                                 ),
                             ),
@@ -192,7 +206,7 @@ class ApiTest {
                                     ),
                                     Pair(
                                         HttpHeaders.Date,
-                                        listOf(Clock.System.now().toString()),
+                                        listOf(clock.now().toString()),
                                     ),
                                     Pair(
                                         HttpHeaders.CacheControl,
@@ -219,7 +233,7 @@ class ApiTest {
                             }
                         },
                     )
-
+                clock.advanceBy(3.seconds)
                 client.getIpWithParam(body.first)
             }
             delay(500)
@@ -238,7 +252,7 @@ class ApiTest {
                                     ),
                                     Pair(
                                         HttpHeaders.Date,
-                                        listOf(Clock.System.now().toString()),
+                                        listOf(clock.now().toString()),
                                     ),
                                     Pair(
                                         HttpHeaders.CacheControl,
@@ -282,7 +296,7 @@ class ApiTest {
                         content =
                             ByteReadChannel(
                                 """
-                                {"ip":"127.0.0.1", "time" : ${Clock.System.now()}, "nanosecond" : ${Clock.System.now().nanosecondsOfSecond}}
+                                {"ip":"127.0.0.1", "time" : ${clock.now()}, "nanosecond" : ${clock.now().nanosecondsOfSecond}}
                                 """.trimIndent(),
                             ),
                         status = HttpStatusCode.OK,
@@ -294,7 +308,7 @@ class ApiTest {
                                 ),
                                 Pair(
                                     HttpHeaders.Date,
-                                    listOf(Clock.System.now().toString()),
+                                    listOf(clock.now().toString()),
                                 ),
                                 Pair(
                                     HttpHeaders.CacheControl,
@@ -312,7 +326,7 @@ class ApiTest {
                 )
 
             val firstResponse = client.getIp()
-            advanceTimeBy(1_500_500)
+            clock.advanceBy(3.seconds)
             val cachedResponse = client.getIp()
             assertNotEquals(firstResponse.bodyAsText(), cachedResponse.bodyAsText())
             assertNotEquals(firstResponse.headers, cachedResponse.headers)
