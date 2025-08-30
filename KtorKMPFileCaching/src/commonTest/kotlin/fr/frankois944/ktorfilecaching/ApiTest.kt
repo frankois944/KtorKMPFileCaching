@@ -22,6 +22,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.test.StandardTestDispatcher
+import kotlinx.coroutines.test.advanceTimeBy
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
@@ -37,6 +38,7 @@ import kotlin.test.assertTrue
 import kotlin.time.Clock
 import kotlin.time.ExperimentalTime
 
+@OptIn(ExperimentalCoroutinesApi::class)
 class ApiTest {
     private val filesystem = FakeFileSystem()
 
@@ -280,7 +282,7 @@ class ApiTest {
                         content =
                             ByteReadChannel(
                                 """
-                                {"ip":"127.0.0.1", "time" : ${Clock.System.now()}}
+                                {"ip":"127.0.0.1", "time" : ${Clock.System.now()}, "nanosecond" : ${Clock.System.now().nanosecondsOfSecond}}
                                 """.trimIndent(),
                             ),
                         status = HttpStatusCode.OK,
@@ -310,7 +312,7 @@ class ApiTest {
                 )
 
             val firstResponse = client.getIp()
-            delay(750)
+            advanceTimeBy(1_500_500)
             val cachedResponse = client.getIp()
             assertNotEquals(firstResponse.bodyAsText(), cachedResponse.bodyAsText())
             assertNotEquals(firstResponse.headers, cachedResponse.headers)
