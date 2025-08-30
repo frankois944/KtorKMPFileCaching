@@ -1,17 +1,16 @@
 [versions]
-agp = "8.9.0"
-collection = "1.5.0-beta03"
+agp = "8.9.3"
+collection = "1.5.0"
 kotlin = "2.2.10"
 kotlinSerialization = "1.9.0" # https://github.com/Kotlin/kotlinx.serialization/releases
 kotlinCoroutines = "1.10.2" # https://github.com/Kotlin/kotlinx.coroutines/releases
 ktor = "3.2.3" # https://github.com/ktorio/ktor/releases
 okio = "3.16.0" # https://square.github.io/okio/changelog/
 slf4jAndroid="1.7.36"
-slf4jJvm="2.0.16"
+slf4jJvm="2.0.17"
 kotlinx-browser="0.3"
-kotlinx-datetime="0.7.1"
-publish="0.30.0"
-indexeddb = "0.9.1"
+publish="0.34.0"
+indexeddb = "0.10.0"
 
 [libraries]
 collection = { module = "androidx.collection:collection", version.ref = "collection" }
@@ -30,7 +29,6 @@ okio-nodefilesystem = { module = "com.squareup.okio:okio-nodefilesystem", versio
 slf4j-android = { module = "org.slf4j:slf4j-android", version.ref = "slf4jAndroid" }
 slf4j-jvm = { module = "org.slf4j:slf4j-api", version.ref = "slf4jJvm" }
 kotlinx-browser = { module = "org.jetbrains.kotlinx:kotlinx-browser", version.ref = "kotlinx-browser" }
-kotlinx-datetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version.ref = "kotlinx-datetime" }
 
 [plugins]
 publish = { id = "com.vanniktech.maven.publish", version.ref = "publish" }

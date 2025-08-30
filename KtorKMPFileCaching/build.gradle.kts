@@ -74,7 +74,7 @@ kotlin {
         commonMain.dependencies {
             implementation(libs.ktor.client.core)
             api(libs.okio)
-            api("org.jetbrains.kotlinx:kotlinx-io-core:0.7.0")
+            // api("org.jetbrains.kotlinx:kotlinx-io-core:0.8.0")
         }
 
         // With okio Filesystem
@@ -88,8 +88,7 @@ kotlin {
         }
         val jsNodeMain by getting {
             dependencies {
-               // api("org.jetbrains.kotlinx:kotlinx-io-core:0.7.0")
-             //   api(libs.okio.nodefilesystem)
+                api(libs.okio.nodefilesystem)
             }
         }
 
@@ -111,15 +110,14 @@ kotlin {
         val jsBrowserMain by getting {
             dependencies {
                 implementation(libs.indexeddb.core)
-               // api("org.jetbrains.kotlinx:kotlinx-io-core:0.7.0")
-               // api(libs.okio.fakefilesystem)
+                api(libs.okio.fakefilesystem)
             }
         }
 
         wasmJsMain.dependencies {
-           // implementation(libs.kotlinx.browser)
-           // api("org.jetbrains.kotlinx:kotlinx-io-core:0.7.0")
-         //   api(libs.okio.fakefilesystem)
+            implementation(libs.kotlinx.browser)
+            // api("org.jetbrains.kotlinx:kotlinx-io-core:0.7.0")
+            api(libs.okio.fakefilesystem)
         }
 
         wasmJsMain.get().dependsOn(browserStorageSystemMain)
@@ -127,12 +125,11 @@ kotlin {
 
         commonTest.dependencies {
             implementation(libs.kotlin.test)
-            //implementation(libs.okio.fakefilesystem)
+            // implementation(libs.okio.fakefilesystem)
             implementation(libs.okio.fakefilesystem)
             implementation(libs.ktor.client.mock)
             implementation(libs.kotlin.coroutines.test)
             implementation(libs.ktor.client.logging)
-            implementation(libs.kotlinx.datetime)
             implementation(libs.kotlin.serialization)
         }
     }
@@ -140,7 +137,7 @@ kotlin {
 
 android {
     namespace = "fr.frankois944.ktorfilecaching"
-    compileSdk = 34
+    compileSdk = 36
     defaultConfig {
         minSdk = 24
     }
@@ -190,7 +187,7 @@ mavenPublishing {
     }
 
     // Configure publishing to Maven Central
-    publishToMavenCentral(com.vanniktech.maven.publish.SonatypeHost.CENTRAL_PORTAL)
+    publishToMavenCentral()
 
     // Enable GPG signing for all publications
     signAllPublications()
