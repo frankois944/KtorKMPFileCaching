@@ -1,6 +1,5 @@
 [versions]
 agp = "8.9.3"
-collection = "1.5.0"
 kotlin = "2.2.10"
 kotlinSerialization = "1.9.0" # https://github.com/Kotlin/kotlinx.serialization/releases
 kotlinCoroutines = "1.10.2" # https://github.com/Kotlin/kotlinx.coroutines/releases
@@ -13,7 +12,6 @@ publish="0.34.0"
 indexeddb = "0.10.0"
 
 [libraries]
-collection = { module = "androidx.collection:collection", version.ref = "collection" }
 indexeddb-core = { module = "com.juul.indexeddb:core", version.ref = "indexeddb" }
 ktor-client-core = { module = "io.ktor:ktor-client-core", version.ref = "ktor" }
 ktor-client-logging = { module = "io.ktor:ktor-client-logging", version.ref = "ktor" }

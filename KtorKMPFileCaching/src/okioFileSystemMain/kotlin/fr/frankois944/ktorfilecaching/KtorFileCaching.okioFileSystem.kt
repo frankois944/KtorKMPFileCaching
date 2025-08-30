@@ -112,8 +112,8 @@ internal class FileCacheStorage(
         val mutex = mutexes.computeIfAbsent(urlHex) { Mutex() }
         mutex.withLock {
             val filePath = "$baseDir${Path.DIRECTORY_SEPARATOR}$urlHex".toPath()
-            if (!fileSystem.exists(filePath)) return@withLock
             try {
+                if (!fileSystem.exists(filePath)) return@withLock
                 fileSystem.delete(filePath)
             } catch (cause: Exception) {
                 println("Exception during cache deletion in a file: ${cause.stackTraceToString()}")
@@ -140,7 +140,6 @@ internal class FileCacheStorage(
 
     private fun readCacheUnsafe(urlHex: String): Set<CachedResponseData> {
         val filePath = "$baseDir${Path.DIRECTORY_SEPARATOR}$urlHex".toPath()
-        if (!fileSystem.exists(filePath)) return emptySet()
         return try {
             val bytes = fileSystem.read(filePath) { readByteArray() }
             Cbor.decodeFromByteArray<Set<SerializableCachedResponseData>>(bytes).map { it.cachedResponseData }.toSet()
