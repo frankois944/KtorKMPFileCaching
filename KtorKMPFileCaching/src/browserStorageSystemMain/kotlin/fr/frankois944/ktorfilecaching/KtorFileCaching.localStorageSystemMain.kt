@@ -57,7 +57,7 @@ internal class FileCacheStorage(
             }
         }
 
-    override suspend fun findAll(url: Url): Set<CachedResponseData> = readCache(key(url)).toSet()
+    override suspend fun findAll(url: Url): Set<CachedResponseData> = readCache(key(url))
 
     override suspend fun find(
         url: Url,
@@ -111,8 +111,8 @@ internal class FileCacheStorage(
     private suspend fun deleteCache(urlHex: String) {
         val mutex = mutexes.computeIfAbsent(urlHex) { Mutex() }
         mutex.withLock {
-            if (Database.getItem("${prefix}_$urlHex") == null) return@withLock
             try {
+                if (Database.getItem("${prefix}_$urlHex") == null) return@withLock
                 Database.removeItem("${prefix}_$urlHex")
             } catch (cause: Exception) {
                 println("Exception during cache deletion in a file: ${cause.stackTraceToString()}")

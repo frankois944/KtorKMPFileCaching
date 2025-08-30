@@ -7,6 +7,7 @@ import io.ktor.client.plugins.cache.storage.CachedResponseData
 import io.ktor.http.Url
 import io.ktor.util.collections.ConcurrentMap
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
@@ -57,7 +58,7 @@ internal class FileCacheStorage(
             }
         }
 
-    override suspend fun findAll(url: Url): Set<CachedResponseData> = readCache(key(url)).toSet()
+    override suspend fun findAll(url: Url): Set<CachedResponseData> = readCache(key(url))
 
     override suspend fun find(
         url: Url,
@@ -141,6 +142,7 @@ internal class FileCacheStorage(
     private fun readCacheUnsafe(urlHex: String): Set<CachedResponseData> {
         val filePath = "$baseDir${Path.DIRECTORY_SEPARATOR}$urlHex".toPath()
         return try {
+            if (!fileSystem.exists(filePath)) return emptySet()
             val bytes = fileSystem.read(filePath) { readByteArray() }
             Cbor.decodeFromByteArray<Set<SerializableCachedResponseData>>(bytes).map { it.cachedResponseData }.toSet()
         } catch (cause: Exception) {
