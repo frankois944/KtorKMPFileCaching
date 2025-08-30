@@ -1,3 +1,5 @@
+@file:OptIn(ExperimentalTime::class)
+
 package fr.frankois944.ktorfilecaching
 
 import io.ktor.client.HttpClient
@@ -23,7 +25,6 @@ import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
-import kotlinx.datetime.Clock
 import kotlinx.serialization.json.Json
 import okio.Path.Companion.toPath
 import okio.fakefilesystem.FakeFileSystem
@@ -33,6 +34,8 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotEquals
 import kotlin.test.assertTrue
+import kotlin.time.Clock
+import kotlin.time.ExperimentalTime
 
 class ApiTest {
     private val filesystem = FakeFileSystem()
@@ -164,7 +167,7 @@ class ApiTest {
                                 "Request_param__${index++}",
                                 ByteReadChannel(
                                     """
-                                    {"ip":"127.0.0.1", "time" : ${Clock.System.now()}, "data" : ${Clock.System.now().nanosecondsOfSecond}}
+                                    {"ip":"127.0.0.1", "time" : ${Clock.System.now()}, "data" : ${Clock.System.now().epochSeconds}.${Clock.System.now().nanosecondsOfSecond}}
                                     """.trimIndent(),
                                 ),
                             ),
