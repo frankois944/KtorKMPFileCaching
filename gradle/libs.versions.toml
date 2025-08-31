@@ -10,7 +10,7 @@ slf4jAndroid="1.7.36"
 slf4jJvm="2.0.16"
 kotlinx-browser="0.3"
 kotlinx-datetime="0.6.1"
-publish="0.30.0"
+publish="0.34.0"
 indexeddb = "0.9.0"
 
 [libraries]
