@@ -75,11 +75,9 @@ class ApiJVMTest {
                         add(
                             Pair(
                                 "Request_param__$index",
-                                ByteReadChannel(
-                                    """
-                                    {"ip":"127.0.0.1", "time" : ${clock.now()}, "data" : ${clock.now().epochSeconds}.${clock.now().nanosecondsOfSecond}}
-                                    """.trimIndent(),
-                                ),
+                                """
+                                {"ip":"127.0.0.1", "time" : ${clock.now()}, "data" : ${clock.now().epochSeconds}.${clock.now().nanosecondsOfSecond}}
+                                """.trimIndent(),
                             ),
                         )
                     }
