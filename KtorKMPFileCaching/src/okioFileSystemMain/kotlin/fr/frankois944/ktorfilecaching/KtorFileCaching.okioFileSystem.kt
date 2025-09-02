@@ -6,8 +6,12 @@ import io.ktor.client.plugins.cache.storage.CacheStorage
 import io.ktor.client.plugins.cache.storage.CachedResponseData
 import io.ktor.http.Url
 import io.ktor.util.collections.ConcurrentMap
+import io.ktor.util.logging.KtorSimpleLogger
+import io.ktor.util.logging.trace
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
@@ -41,6 +45,9 @@ internal class FileCacheStorage(
     private val mutexes = ConcurrentMap<String, Mutex>()
     private val baseDir = "$directoryPath${Path.DIRECTORY_SEPARATOR}$storedCacheDirectory"
 
+    @Suppress("ktlint:standard:property-naming")
+    private val LOGGER = KtorSimpleLogger("KtorFileCaching")
+
     init {
         fileSystem.createDirectories(baseDir.toPath())
     }
@@ -51,8 +58,9 @@ internal class FileCacheStorage(
     ): Unit =
         withContext(dispatcher) {
             val urlHex = key(url)
-            val caches = readCache(urlHex).filterNot { it.varyKeys == data.varyKeys } + data
-            writeCache(urlHex, caches)
+            updateCache(urlHex) { caches ->
+                caches.filterNot { it.varyKeys == data.varyKeys } + data
+            }
         }
 
     override suspend fun findAll(url: Url): Set<CachedResponseData> = readCache(key(url))
@@ -62,7 +70,24 @@ internal class FileCacheStorage(
         varyKeys: Map<String, String>,
     ): CachedResponseData? {
         val data = readCache(key(url))
-        return data.find { varyKeys.all { (key, value) -> it.varyKeys[key] == value } }
+        return data.find {
+            varyKeys.all { (key, value) -> it.varyKeys[key] == value }
+        }
+    }
+
+    override suspend fun remove(
+        url: Url,
+        varyKeys: Map<String, String>,
+    ) {
+        val urlHex = key(url)
+        updateCache(urlHex) { caches ->
+            caches.filterNot { it.varyKeys == varyKeys }
+        }
+    }
+
+    override suspend fun removeAll(url: Url) {
+        val urlHex = key(url)
+        deleteCache(urlHex)
     }
 
     private fun key(url: Url): String {
@@ -73,29 +98,59 @@ internal class FileCacheStorage(
         return hashingSink.hash.hex()
     }
 
-    private suspend fun writeCache(
-        urlHex: String,
-        caches: List<CachedResponseData>,
-    ) = coroutineScope {
+    private suspend fun readCache(urlHex: String): Set<CachedResponseData> {
         val mutex = mutexes.computeIfAbsent(urlHex) { Mutex() }
-        mutex.withLock {
-            val filePath = "$baseDir${Path.DIRECTORY_SEPARATOR}$urlHex".toPath()
-            val serializedData = Cbor.encodeToByteArray(caches.map { SerializableCachedResponseData(it) })
-            fileSystem.write(filePath) { write(serializedData) }
+        return mutex.withLock { readCacheUnsafe(urlHex) }
+    }
+
+    private suspend inline fun updateCache(
+        urlHex: String,
+        transform: (Set<CachedResponseData>) -> List<CachedResponseData>,
+    ) {
+        val mutex = mutexes.computeIfAbsent(urlHex) { Mutex() }
+        return mutex.withLock {
+            val caches = readCacheUnsafe(urlHex)
+            writeCacheUnsafe(urlHex, transform(caches))
         }
     }
 
-    private suspend fun readCache(urlHex: String): Set<CachedResponseData> {
+    private suspend fun deleteCache(urlHex: String) {
         val mutex = mutexes.computeIfAbsent(urlHex) { Mutex() }
-        return mutex.withLock {
+        mutex.withLock {
             val filePath = "$baseDir${Path.DIRECTORY_SEPARATOR}$urlHex".toPath()
-            if (!fileSystem.exists(filePath)) return emptySet()
             try {
-                val bytes = fileSystem.read(filePath) { readByteArray() }
-                Cbor.decodeFromByteArray<Set<SerializableCachedResponseData>>(bytes).map { it.cachedResponseData }.toSet()
-            } catch (e: Exception) {
-                emptySet()
+                if (!fileSystem.exists(filePath)) return@withLock
+                fileSystem.delete(filePath)
+            } catch (cause: Exception) {
+                LOGGER.trace { "Exception during cache deletion in a file: ${cause.stackTraceToString()}" }
             }
+        }
+    }
+
+    private suspend fun writeCacheUnsafe(
+        urlHex: String,
+        caches: List<CachedResponseData>,
+    ) = coroutineScope {
+        try {
+            val filePath = "$baseDir${Path.DIRECTORY_SEPARATOR}$urlHex".toPath()
+            launch {
+                val serializedData = Cbor.encodeToByteArray(caches.map { SerializableCachedResponseData(it) })
+                fileSystem.write(filePath) { write(serializedData) }
+            }
+        } catch (cause: Exception) {
+            LOGGER.trace { "Exception during saving a cache to a file: ${cause.stackTraceToString()}" }
+        }
+    }
+
+    private fun readCacheUnsafe(urlHex: String): Set<CachedResponseData> {
+        val filePath = "$baseDir${Path.DIRECTORY_SEPARATOR}$urlHex".toPath()
+        return try {
+            if (!fileSystem.exists(filePath)) return emptySet()
+            val bytes = fileSystem.read(filePath) { readByteArray() }
+            Cbor.decodeFromByteArray<Set<SerializableCachedResponseData>>(bytes).map { it.cachedResponseData }.toSet()
+        } catch (cause: Exception) {
+            LOGGER.trace { "Exception during cache lookup in a file: ${cause.stackTraceToString()}" }
+            emptySet()
         }
     }
 }
