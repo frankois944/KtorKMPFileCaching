@@ -6,6 +6,8 @@ import io.ktor.client.plugins.cache.storage.CacheStorage
 import io.ktor.client.plugins.cache.storage.CachedResponseData
 import io.ktor.http.Url
 import io.ktor.util.collections.ConcurrentMap
+import io.ktor.util.logging.KtorSimpleLogger
+import io.ktor.util.logging.trace
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.coroutineScope
@@ -42,6 +44,9 @@ internal class FileCacheStorage(
 ) : CacheStorage {
     private val mutexes = ConcurrentMap<String, Mutex>()
     private val baseDir = "$directoryPath${Path.DIRECTORY_SEPARATOR}$storedCacheDirectory"
+
+    @Suppress("ktlint:standard:property-naming")
+    private val LOGGER = KtorSimpleLogger("KtorFileCaching")
 
     init {
         fileSystem.createDirectories(baseDir.toPath())
@@ -117,8 +122,7 @@ internal class FileCacheStorage(
                 if (!fileSystem.exists(filePath)) return@withLock
                 fileSystem.delete(filePath)
             } catch (cause: Exception) {
-                println("Exception during cache deletion in a file: ${cause.stackTraceToString()}")
-                //  LOGGER.trace { "Exception during cache deletion in a file: ${cause.stackTraceToString()}" }
+                LOGGER.trace { "Exception during cache deletion in a file: ${cause.stackTraceToString()}" }
             }
         }
     }
@@ -134,8 +138,7 @@ internal class FileCacheStorage(
                 fileSystem.write(filePath) { write(serializedData) }
             }
         } catch (cause: Exception) {
-            // LOGGER.trace { "Exception during saving a cache to a file: ${cause.stackTraceToString()}" }
-            println("Exception during saving a cache to a file: ${cause.stackTraceToString()}")
+            LOGGER.trace { "Exception during saving a cache to a file: ${cause.stackTraceToString()}" }
         }
     }
 
@@ -146,8 +149,7 @@ internal class FileCacheStorage(
             val bytes = fileSystem.read(filePath) { readByteArray() }
             Cbor.decodeFromByteArray<Set<SerializableCachedResponseData>>(bytes).map { it.cachedResponseData }.toSet()
         } catch (cause: Exception) {
-            // LOGGER.trace { "Exception during cache lookup in a file: ${cause.stackTraceToString()}" }
-            println("Exception during cache lookup in a file: ${cause.stackTraceToString()}")
+            LOGGER.trace { "Exception during cache lookup in a file: ${cause.stackTraceToString()}" }
             emptySet()
         }
     }

@@ -6,6 +6,8 @@ import io.ktor.client.plugins.cache.storage.CacheStorage
 import io.ktor.client.plugins.cache.storage.CachedResponseData
 import io.ktor.http.Url
 import io.ktor.util.collections.ConcurrentMap
+import io.ktor.util.logging.KtorSimpleLogger
+import io.ktor.util.logging.trace
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
@@ -45,6 +47,9 @@ internal class FileCacheStorage(
     val fileSystem: FileSystem = filesystem(),
 ) : CacheStorage {
     private val mutexes = ConcurrentMap<String, Mutex>()
+
+    @Suppress("ktlint:standard:property-naming")
+    private val LOGGER = KtorSimpleLogger("KtorFileCaching")
 
     override suspend fun store(
         url: Url,
@@ -115,8 +120,7 @@ internal class FileCacheStorage(
                 if (Database.getItem("${prefix}_$urlHex") == null) return@withLock
                 Database.removeItem("${prefix}_$urlHex")
             } catch (cause: Exception) {
-                println("Exception during cache deletion in a file: ${cause.stackTraceToString()}")
-                //  LOGGER.trace { "Exception during cache deletion in a file: ${cause.stackTraceToString()}" }
+                LOGGER.trace { "Exception during cache deletion in a file: ${cause.stackTraceToString()}" }
             }
         }
     }
@@ -129,8 +133,7 @@ internal class FileCacheStorage(
             val serializedData = Cbor.encodeToHexString(caches.map { SerializableCachedResponseData(it) })
             Database.setItem("${prefix}_$urlHex", serializedData)
         } catch (cause: Exception) {
-            // LOGGER.trace { "Exception during saving a cache to a file: ${cause.stackTraceToString()}" }
-            println("Exception during saving a cache to a file: ${cause.stackTraceToString()}")
+            LOGGER.trace { "Exception during saving a cache to a file: ${cause.stackTraceToString()}" }
         }
     }
 
@@ -139,8 +142,7 @@ internal class FileCacheStorage(
             val item = Database.getItem("${prefix}_$urlHex") ?: return emptySet()
             Cbor.decodeFromHexString<Set<SerializableCachedResponseData>>(item).map { it.cachedResponseData }.toSet()
         } catch (cause: Exception) {
-            // LOGGER.trace { "Exception during cache lookup in a file: ${cause.stackTraceToString()}" }
-            println("Exception during cache lookup in a file: ${cause.stackTraceToString()}")
+            LOGGER.trace { "Exception during cache lookup in a file: ${cause.stackTraceToString()}" }
             emptySet()
         }
     }
