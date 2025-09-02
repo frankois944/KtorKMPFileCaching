@@ -1,7 +1,7 @@
 [versions]
 agp = "8.7.3"
 collection = "1.5.0-beta03"
-kotlin = "2.1.0"
+kotlin = "2.2.10"
 kotlinSerialization = "1.8.0" # https://github.com/Kotlin/kotlinx.serialization/releases
 kotlinCoroutines = "1.10.1" # https://github.com/Kotlin/kotlinx.coroutines/releases
 ktor = "3.0.0" # https://github.com/ktorio/ktor/releases
