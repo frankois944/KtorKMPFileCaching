@@ -43,7 +43,7 @@ kotlin {
     }
     @OptIn(ExperimentalWasmDsl::class)
     wasmJs {
-        moduleName = "ktorfilecaching"
+        outputModuleName = "ktorfilecaching"
         browser {
             testTask {
                 useKarma {
@@ -127,7 +127,6 @@ kotlin {
             implementation(libs.ktor.client.mock)
             implementation(libs.kotlin.coroutines.test)
             implementation(libs.ktor.client.logging)
-            implementation(libs.kotlinx.datetime)
             implementation(libs.kotlin.serialization)
         }
     }
@@ -135,7 +134,7 @@ kotlin {
 
 android {
     namespace = "fr.frankois944.ktorfilecaching"
-    compileSdk = 34
+    compileSdk = 36
     defaultConfig {
         minSdk = 24
     }
@@ -150,7 +149,7 @@ mavenPublishing {
     coordinates(
         groupId = "io.github.frankois944",
         artifactId = "ktorfilecaching",
-        version = "0.7.0",
+        version = "0.8.0",
     )
 
     // Configure POM metadata for the published artifact
@@ -185,7 +184,7 @@ mavenPublishing {
     }
 
     // Configure publishing to Maven Central
-    publishToMavenCentral(com.vanniktech.maven.publish.SonatypeHost.CENTRAL_PORTAL)
+    publishToMavenCentral()
 
     // Enable GPG signing for all publications
     signAllPublications()
