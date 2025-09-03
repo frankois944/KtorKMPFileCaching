@@ -11,7 +11,7 @@ slf4jJvm="2.0.16"
 kotlinx-browser="0.3"
 kotlinx-datetime="0.6.1"
 publish="0.30.0"
-indexeddb = "0.9.0"
+indexeddb = "0.10.0"
 
 [libraries]
 collection = { module = "androidx.collection:collection", version.ref = "collection" }
