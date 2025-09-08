@@ -1,5 +1,5 @@
 [versions]
-agp = "8.9.3"
+agp = "8.13.0"
 kotlin = "2.2.10"
 kotlinSerialization = "1.9.0" # https://github.com/Kotlin/kotlinx.serialization/releases
 kotlinCoroutines = "1.10.2" # https://github.com/Kotlin/kotlinx.coroutines/releases
