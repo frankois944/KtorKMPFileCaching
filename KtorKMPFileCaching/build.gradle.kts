@@ -203,5 +203,6 @@ sqldelight {
             generateAsync = true
             srcDirs.setFrom("src/browserStorageSystemMain/sqldelight/")
         }
+        linkSqlite = false
     }
 }
