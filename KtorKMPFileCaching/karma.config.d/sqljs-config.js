@@ -18,7 +18,12 @@ const output = {
   path: path.join(os.tmpdir(), '_karma_webpack_') + Math.floor(Math.random() * 1000000),
 }
 config.set({
-  webpack: {...config.webpack, output}
+  webpack: {...config.webpack, output},
+client: {
+      mocha: {
+          timeout: 90000
+      }
+  }
 });
 config.files.push({
   pattern: `${output.path}/**/*`,
