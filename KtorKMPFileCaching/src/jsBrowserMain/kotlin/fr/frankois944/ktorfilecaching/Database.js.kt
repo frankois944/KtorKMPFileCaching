@@ -2,54 +2,43 @@
 
 package fr.frankois944.ktorfilecaching
 
-import com.juul.indexeddb.Database
-import com.juul.indexeddb.Key
-import com.juul.indexeddb.KeyPath
-import com.juul.indexeddb.openDatabase
-import fr.frankois944.ktorfilecaching.database.CacheItem
+import app.cash.sqldelight.async.coroutines.awaitAsOneOrNull
+import app.cash.sqldelight.async.coroutines.awaitCreate
+import app.cash.sqldelight.db.SqlDriver
+import app.cash.sqldelight.driver.worker.createDefaultWebWorkerDriver
+import fr.frankois944.ktorfilecaching.schema.KtorFileCachingDatabase
 
 internal actual object Database {
-    private var database: Database? = null
+    private var database: KtorFileCachingDatabase? = null
 
-    private const val DATABASE_NAME = "KTorKmpFileCaching"
-    private const val STORE_NAME = "cacheitems"
-
-    suspend fun getDatabase(): Database {
+    suspend fun getDatabase(): KtorFileCachingDatabase {
         if (database == null) {
-            database =
-                openDatabase(DATABASE_NAME, 1) { database, oldVersion, _ ->
-                    if (oldVersion < 1) {
-                        val store = database.createObjectStore(STORE_NAME, KeyPath("cacheKey"))
-                        store.createIndex("cacheValue", KeyPath("cacheValue"), unique = false)
-                    }
-                }
+            val driver = createDefaultWebWorkerDriver()
+            KtorFileCachingDatabase.Schema.awaitCreate(driver)
+            database = KtorFileCachingDatabase(driver)
         }
         return database!!
     }
 
     actual suspend fun getItem(key: String): String? =
         getDatabase()
-            .transaction(STORE_NAME) {
-                objectStore(STORE_NAME).get(Key(key)) as? CacheItem
-            }?.cacheValue
+            .databaseCacheQueries
+            .selectOne(key)
+            .awaitAsOneOrNull()
+            ?.value_
 
     actual suspend fun setItem(
         key: String,
         value: String,
     ) {
-        getDatabase().writeTransaction(STORE_NAME) {
-            objectStore(STORE_NAME).put(
-                jso<CacheItem> {
-                    cacheKey = key
-                    cacheValue = value
-                },
-            )
-        }
+        getDatabase()
+            .databaseCacheQueries
+            .insert(key, value)
     }
 
     actual suspend fun removeItem(key: String) {
-        getDatabase().writeTransaction(STORE_NAME) {
-            objectStore(STORE_NAME).delete(Key(key))
-        }
+        getDatabase()
+            .databaseCacheQueries
+            .delete(key)
     }
 }
