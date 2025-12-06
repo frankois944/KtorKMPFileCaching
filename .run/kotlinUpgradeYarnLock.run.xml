@@ -1,5 +1,5 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="kotlinUpgradeYarnLock" type="GradleRunConfiguration" factoryName="Gradle">
+  <configuration default="false" name="kotlinUpgradeYarnLock" type="GradleRunConfiguration" factoryName="Gradle" singleton="false">
     <ExternalSystemSettings>
       <option name="executionName" />
       <option name="externalProjectPath" value="$PROJECT_DIR$" />
@@ -11,6 +11,7 @@
       <option name="taskNames">
         <list>
           <option value=":kotlinUpgradeYarnLock" />
+          <option value=":kotlinWasmUpgradeYarnLock" />
         </list>
       </option>
       <option name="vmOptions" />

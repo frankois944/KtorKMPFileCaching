@@ -1,18 +1,19 @@
 [versions]
 agp = "8.9.3"
-kotlin = "2.2.10"
+kotlin = "2.2.20"
 kotlinSerialization = "1.9.0" # https://github.com/Kotlin/kotlinx.serialization/releases
 kotlinCoroutines = "1.10.2" # https://github.com/Kotlin/kotlinx.coroutines/releases
 ktor = "3.2.3" # https://github.com/ktorio/ktor/releases
-okio = "3.16.0" # https://square.github.io/okio/changelog/
+okio = "3.16.2" # https://square.github.io/okio/changelog/
 slf4jAndroid="1.7.36"
 slf4jJvm="2.0.17"
 kotlinx-browser="0.3"
 publish="0.34.0"
-indexeddb = "0.10.0"
+sqlDelight = "2.1.0"
 
 [libraries]
-indexeddb-core = { module = "com.juul.indexeddb:core", version.ref = "indexeddb" }
+web-worker-driver = { module = "app.cash.sqldelight:web-worker-driver", version.ref = "sqlDelight" }
+web-worker-driver-wasm-js = { module = "app.cash.sqldelight:web-worker-driver-wasm-js", version.ref = "sqlDelight" }
 ktor-client-core = { module = "io.ktor:ktor-client-core", version.ref = "ktor" }
 ktor-client-logging = { module = "io.ktor:ktor-client-logging", version.ref = "ktor" }
 ktor-client-mock = { module = "io.ktor:ktor-client-mock", version.ref = "ktor" }
@@ -29,6 +30,7 @@ slf4j-jvm = { module = "org.slf4j:slf4j-api", version.ref = "slf4jJvm" }
 kotlinx-browser = { module = "org.jetbrains.kotlinx:kotlinx-browser", version.ref = "kotlinx-browser" }
 
 [plugins]
+sqlDelight = { id = "app.cash.sqldelight", version.ref = "sqlDelight" }
 publish = { id = "com.vanniktech.maven.publish", version.ref = "publish" }
 androidLibrary = { id = "com.android.library", version.ref = "agp" }
 kotlinMultiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }

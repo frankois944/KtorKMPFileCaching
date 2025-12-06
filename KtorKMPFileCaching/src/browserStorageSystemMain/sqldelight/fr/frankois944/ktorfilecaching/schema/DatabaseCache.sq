@@ -1,0 +1,16 @@
+CREATE TABLE databaseCache (
+  key TEXT PRIMARY KEY NOT NULL,
+  value TEXT
+);
+
+CREATE INDEX databaseCache_key ON databaseCache(key);
+
+insert:
+INSERT OR REPLACE INTO databaseCache (key, value)
+VALUES (?, ?);
+
+delete:
+DELETE FROM databaseCache WHERE key = ?;
+
+selectOne:
+SELECT value FROM databaseCache WHERE key = ?;

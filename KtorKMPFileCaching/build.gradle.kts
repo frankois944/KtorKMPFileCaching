@@ -6,6 +6,7 @@ plugins {
     alias(libs.plugins.androidLibrary)
     alias(libs.plugins.kotlinSerialization)
     alias(libs.plugins.publish)
+    alias(libs.plugins.sqlDelight)
 }
 
 val kotlinJsTargetAttribute = Attribute.of("kotlinJsTarget", String::class.java)
@@ -103,12 +104,16 @@ kotlin {
             dependencies {
                 implementation(libs.kotlin.coroutines)
                 implementation(libs.kotlin.serialization.cbor)
+                implementation(npm("@cashapp/sqldelight-sqljs-worker", "2.1.0"))
+                implementation(devNpm("copy-webpack-plugin", "9.1.0"))
+                implementation(npm("sql.js", "1.8.0"))
+                implementation(npm("@js-joda/timezone", "2.22.0"))
             }
         }
 
         val jsBrowserMain by getting {
             dependencies {
-                implementation(libs.indexeddb.core)
+                implementation(libs.web.worker.driver)
                 api(libs.okio.fakefilesystem)
             }
         }
@@ -116,6 +121,7 @@ kotlin {
         wasmJsMain.dependencies {
             implementation(libs.kotlinx.browser)
             api(libs.okio.fakefilesystem)
+            implementation(libs.web.worker.driver.wasm.js)
         }
 
         wasmJsMain.get().dependsOn(browserStorageSystemMain)
@@ -149,7 +155,7 @@ mavenPublishing {
     coordinates(
         groupId = "io.github.frankois944",
         artifactId = "ktorfilecaching",
-        version = "0.8.0",
+        version = "0.9.0",
     )
 
     // Configure POM metadata for the published artifact
@@ -188,4 +194,15 @@ mavenPublishing {
 
     // Enable GPG signing for all publications
     signAllPublications()
+}
+
+sqldelight {
+    databases {
+        create("KtorFileCachingDatabase") {
+            packageName = "fr.frankois944.ktorfilecaching.schema"
+            generateAsync = true
+            srcDirs.setFrom("src/browserStorageSystemMain/sqldelight/")
+        }
+        linkSqlite = false
+    }
 }
