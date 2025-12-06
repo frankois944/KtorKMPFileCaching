@@ -92,6 +92,10 @@ kotlin {
             }
         }
 
+        nativeMain.dependencies {
+            implementation(libs.native.driver)
+        }
+
         nativeMain.get().dependsOn(okioFileSystemMain)
         jvmMain.get().dependsOn(okioFileSystemMain)
         androidMain.get().dependsOn(okioFileSystemMain)
