@@ -4,7 +4,6 @@ package fr.frankois944.ktorfilecaching
 
 import app.cash.sqldelight.async.coroutines.awaitAsOneOrNull
 import app.cash.sqldelight.async.coroutines.awaitCreate
-import app.cash.sqldelight.db.SqlDriver
 import app.cash.sqldelight.driver.worker.createDefaultWebWorkerDriver
 import fr.frankois944.ktorfilecaching.schema.KtorFileCachingDatabase
 

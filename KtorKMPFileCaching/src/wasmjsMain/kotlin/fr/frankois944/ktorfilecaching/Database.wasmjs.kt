@@ -6,9 +6,6 @@ import app.cash.sqldelight.async.coroutines.awaitAsOneOrNull
 import app.cash.sqldelight.async.coroutines.awaitCreate
 import app.cash.sqldelight.driver.worker.createDefaultWebWorkerDriver
 import fr.frankois944.ktorfilecaching.schema.KtorFileCachingDatabase
-import fr.frankois944.ktorfilecaching.schema.KtorFileCachingDatabase.Companion.invoke
-import kotlinx.browser.window
-import org.w3c.dom.set
 
 internal actual object Database {
     private var database: KtorFileCachingDatabase? = null

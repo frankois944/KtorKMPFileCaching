@@ -92,10 +92,6 @@ kotlin {
             }
         }
 
-        nativeMain.dependencies {
-            implementation(libs.native.driver)
-        }
-
         nativeMain.get().dependsOn(okioFileSystemMain)
         jvmMain.get().dependsOn(okioFileSystemMain)
         androidMain.get().dependsOn(okioFileSystemMain)
@@ -205,6 +201,7 @@ sqldelight {
         create("KtorFileCachingDatabase") {
             packageName = "fr.frankois944.ktorfilecaching.schema"
             generateAsync = true
+            srcDirs.setFrom("src/browserStorageSystemMain/sqldelight/")
         }
     }
 }
