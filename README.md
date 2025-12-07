@@ -62,13 +62,13 @@ config.plugins.push(
 ### Kotlin JS for NodeJS
 
 ```kotlin
-implementation("io.github.frankois944:ktorfilecaching-jsnode:0.6.0")
+implementation("io.github.frankois944:ktorfilecaching-jsnode:0.9.0")
 ```
 
 ### other platform
 
 ```kotlin
-implementation("io.github.frankois944:ktorfilecaching:0.6.0")
+implementation("io.github.frankois944:ktorfilecaching:0.9.0")
 ```
 
 ## Platforms
