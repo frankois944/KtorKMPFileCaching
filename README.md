@@ -60,7 +60,7 @@ config.plugins.push(
     })
 ```
 
-[More info on SqlDelight documentation](https://sqldelight.github.io/sqldelight/latest/js_sqlite/sqljs_worker/)
+[More info on SQLDelight documentation](https://sqldelight.github.io/sqldelight/latest/js_sqlite/sqljs_worker/)
 
 ### Kotlin JS for NodeJS
 
