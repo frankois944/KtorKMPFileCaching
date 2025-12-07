@@ -5,6 +5,8 @@
 
 This project is a [Ktor client caching](https://ktor.io/docs/client-caching.html), which is (almost) literally a port of [FileStorage](https://api.ktor.io/ktor-client/ktor-client-core/io.ktor.client.plugins.cache.storage/-file-storage.html) but for KMP based on [OKIO](https://square.github.io/okio/multiplatform/) and [kotlinx serialization](https://github.com/Kotlin/kotlinx.serialization).
 
+Web targets are using a SQL database from [SQLDelight](https://sqldelight.github.io/sqldelight/latest/js_sqlite/)
+
 
 ## Example
 
