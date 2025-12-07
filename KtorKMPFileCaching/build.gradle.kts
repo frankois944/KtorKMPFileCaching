@@ -190,7 +190,7 @@ mavenPublishing {
     }
 
     // Configure publishing to Maven Central
-    publishToMavenCentral()
+    publishToMavenCentral(true)
 
     // Enable GPG signing for all publications
     signAllPublications()
