@@ -5,8 +5,6 @@
 
 This project is a [Ktor client caching](https://ktor.io/docs/client-caching.html), which is (almost) literally a port of [FileStorage](https://api.ktor.io/ktor-client/ktor-client-core/io.ktor.client.plugins.cache.storage/-file-storage.html) but for KMP based on [OKIO](https://square.github.io/okio/multiplatform/) and [kotlinx serialization](https://github.com/Kotlin/kotlinx.serialization).
 
-> [!IMPORTANT]  
-> The library uses the LocalStorage for the **wasm** target, there is a size limitation (about 5mo in total) who need to be manually managed by yourself.
 
 ## Example
 
@@ -21,11 +19,45 @@ HttpClient {
 
 ## Installation
 
-### Kotlin JS for browser
+### Kotlin JS/Wasm for browser
 
 ```kotlin
-implementation("io.github.frankois944:ktorfilecaching-jsbrowser:0.6.0")
+// {project}/build.gradle.kts - Browser Js
+jsMain.dependencies {
+    implementation("io.github.frankois944:ktorfilecaching-jsbrowser:0.9.0")
+    implementation(devNpm("copy-webpack-plugin", "9.1.0"))
+}
+
+// OR
+
+// {project}/build.gradle.kts - Wasm JS
+wasmJsMain.dependencies {
+    implementation("io.github.frankois944:ktorfilecaching:0.9.0")
+    implementation(devNpm("copy-webpack-plugin", "9.1.0"))
+}
 ```
+
+- Update or Create your webpack folder
+
+```
+// {project}/webpack.config.d/sqljs.js
+config.resolve = {
+    fallback: {
+        fs: false,
+        path: false,
+        crypto: false,
+    }
+};
+
+const CopyWebpackPlugin = require('copy-webpack-plugin');
+config.plugins.push(
+    new CopyWebpackPlugin({
+        patterns: [
+            '../../node_modules/sql.js/dist/sql-wasm.wasm'
+        ]
+    })
+```
+
 
 ### Kotlin JS for NodeJS
 
