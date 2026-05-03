@@ -91,11 +91,12 @@ The current supported targets are :
 | macosArm64            | ✅         |
 | watchosArm32          | ✅         |
 | watchosArm64          | ✅         |
+| watchosDeviceArm64    | ✅         |
 | watchosSimulatorArm64 | ✅         |
 | watchosX64            | ✅         |
+| tvosArm64             | ✅         |
 | tvosSimulatorArm64    | ✅         |
 | tvosX64               | ✅         |
-| mingwX64              | ✅         |
 | mingwX64              | ✅         |
 | linuxX64              | ✅         |
 | linuxArm64            | ✅         |
